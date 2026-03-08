@@ -1,0 +1,130 @@
+.custom-page-container {
+  position: relative;
+  width: 100%;
+  margin-top: 8px;
+  
+  &-content {
+    margin-bottom: 24px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &-transparent {
+      background-color: transparent;
+    }
+  }
+  
+  &-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+  }
+  
+  &-footer {
+    margin-top: 16px;
+    padding: 16px 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    
+    // 当页脚包含多个按钮时，确保它们之间有合适的间距
+    > * {
+      margin-left: 12px;
+      
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+  }
+}
+
+// 动画类
+.animation-fade {
+  opacity: 0;
+  transform: translateY(20px);
+  
+  &.mounted {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animation-slide {
+  opacity: 0;
+  transform: translateX(-30px);
+  
+  &.mounted {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animation-zoom {
+  opacity: 0;
+  transform: scale(0.9);
+  
+  &.mounted {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// 透明内容容器
+.custom-transparent-content {
+  padding: 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  
+  // 深色模式适配
+  .dark-mode & {
+    background: rgba(0, 0, 0, 0.6);
+  }
+}
+
+// 回到顶部按钮样式
+.ant-back-top {
+  right: 40px;
+  bottom: 40px;
+}
+
+// 自定义滚动条
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 4px;
+  
+  &:hover {
+    background: #8c8c8c;
+  }
+}
+
+// 深色模式滚动条
+.dark-mode {
+  ::-webkit-scrollbar-track {
+    background: #141414;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #434343;
+    
+    &:hover {
+      background: #595959;
+    }
+  }
+} 

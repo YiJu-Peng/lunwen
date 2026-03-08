@@ -1,0 +1,61 @@
+.course-selection-card {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  
+  .ant-card-body {
+    padding: 0;
+  }
+}
+
+.course-row {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: rgba(24, 144, 255, 0.05);
+  }
+}
+
+.conflict-details {
+  margin-top: 16px;
+  
+  .conflict-course-card {
+    margin-bottom: 16px;
+    border-left: 4px solid #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.05);
+  }
+}
+
+.conflict-modal {
+  .ant-modal-content {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .ant-modal-header {
+    background-color: #fff8f8;
+  }
+}
+
+.confirm-modal {
+  .ant-modal-content {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .course-info {
+    padding: 16px 0;
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .course-selection-card {
+    margin: 0 -16px;
+    border-radius: 0;
+  }
+  
+  .ant-pro-table .ant-pro-card-body {
+    padding: 8px;
+  }
+} 

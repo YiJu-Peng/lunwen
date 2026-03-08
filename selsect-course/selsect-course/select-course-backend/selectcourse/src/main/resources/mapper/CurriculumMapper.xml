@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hardlin.selectcourse.mapper.CurriculumMapper">
+
+    <resultMap id="BaseResultMap" type="com.hardlin.selectcourse.entity.Curriculum">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="subjectid" column="subjectId" jdbcType="INTEGER"/>
+            <result property="teacherid" column="teacherId" jdbcType="INTEGER"/>
+            <result property="teachingtime" column="teachingTime" jdbcType="TIMESTAMP"/>
+            <result property="location" column="location" jdbcType="VARCHAR"/>
+            <result property="remarks" column="remarks" jdbcType="VARCHAR"/>
+            <result property="stock" column="stock" jdbcType="INTEGER"/>
+            <result property="isstock" column="isStock" jdbcType="INTEGER"/>
+            <result property="createtime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updatetime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isdelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,subjectId,teacherId,
+        teachingTime,location,remarks,
+        stock,isStock,createTime,
+        updateTime,isDelete
+    </sql>
+</mapper>

@@ -1,0 +1,205 @@
+.data-visualization-container {
+  position: relative;
+  margin: 20px auto;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+  
+  &.dark {
+    background-color: #121212;
+    color: #ffffff;
+  }
+  
+  .data-visualization-title {
+    font-size: 20px;
+    font-weight: 600;
+    padding: 16px 20px 0;
+    text-align: center;
+  }
+  
+  .data-visualization-description {
+    font-size: 14px;
+    padding: 8px 20px 16px;
+    opacity: 0.8;
+    text-align: center;
+  }
+  
+  .data-visualization-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .data-visualization-lottie,
+  .data-visualization-three {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transition: opacity 0.5s ease;
+    
+    &.loading {
+      opacity: 0;
+    }
+    
+    &.loaded {
+      opacity: 1;
+    }
+  }
+  
+  .data-visualization-lottie {
+    z-index: 1;
+    pointer-events: none;
+  }
+  
+  .data-visualization-three {
+    z-index: 2;
+  }
+  
+  .data-visualization-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 10;
+    
+    .dark & {
+      background-color: rgba(18, 18, 18, 0.9);
+    }
+    
+    .loader-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid #3f88f4;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      animation: loader-spin 1s linear infinite;
+      
+      .dark & {
+        border-color: #61dafb;
+        border-bottom-color: transparent;
+      }
+    }
+    
+    .loader-text {
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+  
+  .data-visualization-fallback {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    
+    .fallback-message {
+      text-align: center;
+      padding: 10px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #ff9800;
+      background-color: rgba(255, 152, 0, 0.1);
+      border-radius: 4px;
+    }
+    
+    .fallback-chart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      height: calc(100% - 60px);
+      padding: 0 20px;
+    }
+    
+    .fallback-bar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      flex: 1;
+      max-width: 80px;
+    }
+    
+    .fallback-bar {
+      width: 30px;
+      margin: 0 auto;
+      min-height: 20px;
+      border-radius: 4px 4px 0 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      
+      .fallback-bar-value {
+        position: absolute;
+        top: -24px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+    }
+    
+    .fallback-bar-label {
+      margin-top: 8px;
+      font-size: 12px;
+      text-align: center;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+@keyframes loader-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .data-visualization-container {
+    .data-visualization-title {
+      font-size: 16px;
+      padding: 12px 16px 0;
+    }
+    
+    .data-visualization-description {
+      font-size: 12px;
+      padding: 4px 16px 12px;
+    }
+    
+    .data-visualization-fallback {
+      .fallback-bar {
+        width: 20px;
+      }
+      
+      .fallback-bar-label {
+        font-size: 10px;
+      }
+    }
+  }
+}
+
+/* 无障碍支持 */
+@media (prefers-reduced-motion) {
+  .data-visualization-container {
+    .loader-spinner {
+      animation: none;
+    }
+    
+    .fallback-bar {
+      transition: none;
+    }
+  }
+} 

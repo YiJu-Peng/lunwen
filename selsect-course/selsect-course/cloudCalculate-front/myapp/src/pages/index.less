@@ -1,0 +1,56 @@
+.welcome-card, 
+.quick-actions-card,
+.data-visualization-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s;
+  
+  .ant-card-head {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  
+  .ant-card-body {
+    padding: 24px;
+  }
+}
+
+.welcome-card {
+  height: 100%;
+  
+  .stats-row {
+    margin-top: 24px;
+    margin-bottom: 32px;
+  }
+  
+  .action-row {
+    margin-top: 16px;
+  }
+}
+
+.quick-actions-card {
+  height: 100%;
+  
+  .ant-btn {
+    margin-bottom: 8px;
+    height: 40px;
+  }
+}
+
+.data-visualization-card {
+  margin-bottom: 24px;
+  
+  .ant-card-body {
+    padding: 12px;
+  }
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .stats-row {
+    .ant-col {
+      width: 50%;
+      margin-bottom: 16px;
+    }
+  }
+} 

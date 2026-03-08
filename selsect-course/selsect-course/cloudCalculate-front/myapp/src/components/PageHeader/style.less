@@ -1,0 +1,153 @@
+.custom-page-header {
+  padding: 16px 0 0;
+  margin-bottom: 24px;
+  
+  &-breadcrumb {
+    margin-bottom: 16px;
+    font-size: 14px;
+    
+    .ant-breadcrumb-link {
+      transition: color 0.3s;
+      
+      &:hover {
+        color: #2563eb;
+      }
+    }
+  }
+  
+  &-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+  }
+  
+  &-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  
+  &-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  &-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #2563eb;
+  }
+  
+  &-title {
+    margin: 0 !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    color: rgba(0, 0, 0, 0.85);
+    line-height: 32px !important;
+    position: relative;
+    z-index: 1;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background-color: rgba(37, 99, 235, 0.1);
+      border-radius: 2px;
+      z-index: -1;
+      transform-origin: left;
+      animation: expand 0.6s ease-out forwards;
+    }
+  }
+  
+  &-tags {
+    margin-left: 8px;
+    
+    .header-tag {
+      border-radius: 4px;
+      padding: 0 8px;
+      font-size: 12px;
+      line-height: 20px;
+      border: none;
+    }
+  }
+  
+  &-subtitle {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 22px;
+    color: rgba(0, 0, 0, 0.45);
+    max-width: 700px;
+  }
+  
+  &-extra {
+    margin-left: 16px;
+    display: flex;
+    align-items: center;
+  }
+  
+  &-divider {
+    margin: 16px 0 !important;
+    border-top: 1px solid rgba(5, 5, 5, 0.06);
+  }
+  
+  // 响应式样式
+  @media (max-width: 768px) {
+    &-main {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    &-extra {
+      margin-left: 0;
+      margin-top: 16px;
+      align-self: flex-end;
+    }
+    
+    &-title {
+      font-size: 20px !important;
+    }
+    
+    &-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+// 标题下划线动画
+@keyframes expand {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+// 深色模式适配
+.dark-mode {
+  .custom-page-header {
+    &-title {
+      color: rgba(255, 255, 255, 0.85);
+      
+      &::after {
+        background-color: rgba(37, 99, 235, 0.2);
+      }
+    }
+    
+    &-subtitle {
+      color: rgba(255, 255, 255, 0.45);
+    }
+    
+    &-divider {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  }
+} 

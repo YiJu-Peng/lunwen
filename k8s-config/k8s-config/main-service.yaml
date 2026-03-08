@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: select-course-main
+  labels:
+    app: select-course-main
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: select-course-main
+  template:
+    metadata:
+      labels:
+        app: select-course-main
+    spec:
+      containers:
+        - name: select-course-main
+          image: main-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8101
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+      imagePullSecrets:
+        - name: regcred  # 如果使用私有镜像仓库，需要配置拉取密钥

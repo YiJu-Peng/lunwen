@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hardlin.springbootinit.mapper.DelayedMapper">
+
+    <resultMap id="BaseResultMap" type="com.hardlin.springbootinit.model.entity.Delayed">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="studyYear" column="study_year" jdbcType="VARCHAR"/>
+            <result property="srudySchdule" column="srudySchdule" jdbcType="INTEGER"/>
+            <result property="des" column="des" jdbcType="VARCHAR"/>
+            <result property="studentId" column="studentId" jdbcType="INTEGER"/>
+            <result property="studentCollege" column="studentCollege" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,studyYear,srudySchdule,
+        des,studentId,studentCollege
+    </sql>
+</mapper>

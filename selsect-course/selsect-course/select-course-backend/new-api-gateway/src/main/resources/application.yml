@@ -1,0 +1,101 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: api-gateway
+  main:
+    web-application-type: reactive
+  cloud:
+    nacos:
+      discovery:
+        server-addr: nacos-headless.select-course.svc.cluster.local:8848
+#        server-addr: localhost:8848
+    gateway:
+      # 开启服务发现
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      # 配置路由
+      routes:
+        - id: select-service
+          uri: lb://enrollment-service
+          predicates:
+            - Path=/api/enrollments/**,/api/schedule/**
+          filters:
+            - StripPrefix=0
+        - id: course-service
+          uri: lb://main-service
+          predicates:
+            - Path=/api/**
+          filters:
+            - StripPrefix=0
+        # 用户服务路由
+      # 全局跨域配置
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            # 允许跨域的来源
+            allowed-origin-patterns: '*'
+            # 允许的请求方法
+            allowed-methods: '*'
+            # 允许的请求头
+            allowed-headers: '*'
+            # 允许携带凭据
+            allow-credentials: true
+            # 预检请求有效期
+            max-age: 3600
+        # 简单请求也处理CORS
+        add-to-simple-url-handler-mapping: true
+      # 超时配置
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 10000
+        pool:
+          max-connections: 10000      # 最大连接数（默认 500）
+          max-idle-time: 60000       # 空闲连接存活时间（ms）
+  # Redis配置
+  redis:
+    database: 1
+#    host: 127.0.0.1
+    host: host.docker.internal
+    port: 6379
+    password: 
+    timeout: 10s
+    lettuce:
+      pool:
+        max-active: 500
+        max-wait: 5000ms
+        max-idle: 10
+        min-idle: 0
+
+# Sa-Token配置
+sa-token:
+  # token名称（同时也是cookie名称）
+  token-name: Authorization
+  # token有效期（单位：秒），默认30天
+  timeout: 2592000
+  # 是否允许同一账号多地同时登录
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个token
+  is-share: false
+  # token风格
+  token-style: uuid
+  # 是否输出操作日志
+  is-log: true
+  # 是否从cookie中读取token
+  is-read-cookie: false
+  # 是否从header中读取token
+  is-read-header: true
+  # token前缀
+  token-prefix: "Bearer"
+  # 是否尝试从请求体里读取token
+  is-read-body: false
+
+# 日志配置
+logging:
+  level:
+    com.hardlin: debug
+    org.springframework.cloud.gateway: debug
+    org.springframework.web.cors: debug 

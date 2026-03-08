@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: select-course-gateway
+  labels:
+    app: select-course-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: select-course-gateway
+  template:
+    metadata:
+      labels:
+        app: select-course-gateway
+    spec:
+      containers:
+        - name: select-course-gateway
+          image: gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+      imagePullSecrets:
+        - name: regcred  # 如果使用私有镜像仓库，需要配置拉取密钥

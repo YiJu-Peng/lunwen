@@ -1,0 +1,27 @@
+
+services:
+  mysql:
+    networks:
+      - my-network
+    image: mysql
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 5211314..
+    ports:
+      - 3306:3306
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+  cloudcalculate-backend:
+    networks:
+      - my-network
+    container_name: cloudcalculate-backend
+    build: ./
+    restart: on-failure
+    ports:
+      - 8101:8101
+    depends_on:
+      - mysql
+networks:
+  my-network:
+#    driver: bridge

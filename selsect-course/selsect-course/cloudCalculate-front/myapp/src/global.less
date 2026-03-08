@@ -1,0 +1,395 @@
+/* 全局样式 */
+
+:root {
+  --ant-primary-color: #2563eb;
+  --ant-primary-color-hover: #4285f4;
+  --ant-error-color: #dc2626;
+  --ant-success-color: #10b981;
+  --ant-warning-color: #f59e0b;
+  --ant-shadow-1: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --ant-shadow-2: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --ant-border-radius-base: 8px;
+  --ant-border-radius-lg: 12px;
+  --ant-border-radius-sm: 4px;
+  --ant-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--ant-font-family);
+}
+
+.colorWeak {
+  filter: invert(80%);
+}
+
+.ant-layout {
+  min-height: 100vh;
+}
+
+.ant-pro-sider.ant-layout-sider.ant-pro-sider-fixed {
+  left: unset;
+}
+
+.ant-layout-header {
+  position: relative;
+  height: 64px;
+  padding: 0 24px;
+  box-shadow: var(--ant-shadow-1);
+  z-index: 10;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, var(--ant-primary-color), rgba(37, 99, 235, 0.2));
+  }
+}
+
+.ant-layout-content {
+  position: relative;
+  margin: 16px;
+  padding: 16px;
+  background-color: #f5f8fa;
+  border-radius: var(--ant-border-radius-lg);
+  transition: all 0.3s;
+  min-height: calc(100vh - 96px);
+  
+  .dark-mode & {
+    background-color: #141414;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+}
+
+// 卡片样式增强
+.ant-card {
+  border-radius: var(--ant-border-radius-base);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--ant-shadow-1);
+  
+  &:hover {
+    box-shadow: var(--ant-shadow-2);
+    transform: translateY(-2px);
+  }
+  
+  .ant-card-head {
+    position: relative;
+    border-bottom-color: rgba(5, 5, 5, 0.06);
+    font-weight: 600;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, var(--ant-primary-color), transparent);
+    }
+  }
+}
+
+// 按钮样式增强
+.ant-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:active {
+    transform: scale(0.98);
+  }
+  
+  &-primary {
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.4);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%, -50%);
+    transform-origin: 50% 50%;
+  }
+  
+  &:active::after {
+    animation: ripple 0.8s ease-out;
+  }
+}
+
+// 水波纹动画
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(25, 25);
+    opacity: 0;
+  }
+}
+
+// 表单样式增强
+.ant-form-item {
+  margin-bottom: 20px;
+  
+  .ant-form-item-label > label {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.75);
+  }
+  
+  .ant-input, .ant-input-affix-wrapper, .ant-select-selector {
+    border-radius: 6px;
+    transition: all 0.3s;
+    border-color: #d9d9d9;
+    
+    &:hover, &:focus {
+      border-color: var(--ant-primary-color);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+  }
+}
+
+// 表格样式增强
+.ant-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  
+  .ant-table-thead > tr > th {
+    background: rgba(0, 0, 0, 0.02);
+    font-weight: 600;
+  }
+  
+  .ant-table-tbody > tr:hover > td {
+    background-color: rgba(37, 99, 235, 0.05);
+  }
+}
+
+// 侧边栏样式
+.ant-layout-sider {
+  box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
+  
+  .ant-menu-item {
+    border-radius: 4px;
+    margin: 4px 8px !important;
+    
+    &::after {
+      display: none;
+    }
+    
+    &-selected {
+      font-weight: 500;
+    }
+  }
+}
+
+// 进度条动画
+.nprogress-custom-parent {
+  overflow: hidden;
+  position: relative;
+}
+
+.nprogress-custom-parent #nprogress .spinner,
+.nprogress-custom-parent #nprogress .bar {
+  position: absolute;
+}
+
+#nprogress {
+  pointer-events: none;
+  
+  .bar {
+    background: var(--ant-primary-color);
+    position: fixed;
+    z-index: 1031;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+  }
+  
+  .peg {
+    display: block;
+    position: absolute;
+    right: 0px;
+    width: 100px;
+    height: 100%;
+    box-shadow: 0 0 10px var(--ant-primary-color), 0 0 5px var(--ant-primary-color);
+    opacity: 1.0;
+    transform: rotate(3deg) translate(0px, -4px);
+  }
+}
+
+// 暗色模式适配
+.dark-mode {
+  .ant-card {
+    background-color: #1f1f1f;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    
+    .ant-card-head {
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.85);
+    }
+    
+    .ant-card-body {
+      color: rgba(255, 255, 255, 0.65);
+    }
+  }
+  
+  .ant-table {
+    background-color: #1f1f1f;
+    color: rgba(255, 255, 255, 0.65);
+    
+    .ant-table-thead > tr > th {
+      background: rgba(255, 255, 255, 0.04);
+      color: rgba(255, 255, 255, 0.85);
+    }
+    
+    .ant-table-tbody > tr:hover > td {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+  }
+  
+  .ant-form-item .ant-form-item-label > label {
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+@media (max-width: 768px) {
+  .ant-layout-content {
+    margin: 8px;
+    padding: 8px;
+  }
+  
+  .ant-pro-global-header {
+    padding: 0 12px;
+  }
+}
+
+// 动画效果
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.scale-in {
+  opacity: 0;
+  transform: scale(0.9);
+  animation: scaleIn 0.5s ease forwards;
+}
+
+@keyframes scaleIn {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.slide-in {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideIn 0.5s ease forwards;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 修复 ant-pro 相关样式
+.ant-pro-global-header-logo img {
+  height: 28px;
+}
+
+.ant-pro-global-header-logo h1 {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.ant-pro-global-header-logo {
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, var(--ant-primary-color), transparent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  
+  &:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+canvas {
+  display: block;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+@media (max-width: @screen-xs) {
+  .ant-table {
+    width: 100%;
+    overflow-x: auto;
+    &-thead > tr,
+    &-tbody > tr {
+      > th,
+      > td {
+        white-space: pre;
+        > span {
+          display: block;
+        }
+      }
+    }
+  }
+}
+
+// 兼容IE11
+@media screen and(-ms-high-contrast: active), (-ms-high-contrast: none) {
+  body .ant-design-pro > .ant-layout {
+    min-height: 100vh;
+  }
+}
