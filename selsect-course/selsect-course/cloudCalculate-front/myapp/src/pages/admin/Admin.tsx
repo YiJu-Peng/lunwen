@@ -13,7 +13,7 @@ const props2: UploadProps = {
   multiple: true,
   action: 'http://localhost:8101/api/cloudCalculate/delayedUpload',
   beforeUpload: (file) => {
-    // 修改这里以正确识别 Excel 文件类型
+    // 补一下 Excel 文件类型识别规则
     const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
       file.type === 'application/vnd.ms-excel';
     if (!isExcel) {
@@ -47,7 +47,7 @@ const props1: UploadProps = {
   multiple: true,
   action: 'http://localhost:8101/api/cloudCalculate/uploadExcel',
   beforeUpload: (file) => {
-    // 修改这里以正确识别 Excel 文件类型
+    // 补一下 Excel 文件类型识别规则
     const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
       file.type === 'application/vnd.ms-excel';
     if (!isExcel) {

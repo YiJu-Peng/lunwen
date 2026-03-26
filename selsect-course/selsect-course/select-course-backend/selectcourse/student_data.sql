@@ -1,5 +1,5 @@
 -- 添加学生数据
--- 注意：这里的学生ID需要与enrollment表中的studentId对应
+-- 注意：学生 ID 需要和 enrollment 表中的 studentId 保持对应
 DROP TABLE IF EXISTS `student`;
 CREATE TABLE `student` (
   `id` int NOT NULL,

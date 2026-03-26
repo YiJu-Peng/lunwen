@@ -146,7 +146,7 @@ public class ExcelUploadController {
                     String teacher_name = row.getCell(14).getStringCellValue();
                     String stringCellValue = row.getCell(15).getStringCellValue();
                     int class_id = Integer.parseInt(stringCellValue.substring(0, stringCellValue.length() - 1));
-                    //查询班级是否存在 不存在添加
+                    //先查出班级是否存在 不存在添加
                     QueryWrapper<Classes> queryWrapper1 = new QueryWrapper<>();
                     queryWrapper1.eq("id", class_id); // 等价于 WHERE id = #{classId}
 
@@ -156,7 +156,7 @@ public class ExcelUploadController {
                         classes.setId(class_id);
                         classMapper.insert(classes);
                     }
-                    //查询课程是否存在不存在添加
+                    //先查出课程是否存在不存在添加
                     QueryWrapper<Subject> queryWrapper2 = new QueryWrapper<>();
                     queryWrapper2.eq("id", subject_id); // 等价于 WHERE id = #{classId}
 
@@ -169,7 +169,7 @@ public class ExcelUploadController {
                         subjectMapper.insert(subject);
                     }
 
-                    //查询学生不存在则添加，默认密码123456
+                    //先查出学生不存在则添加，默认密码123456
                     QueryWrapper<User> queryWrapper3 = new QueryWrapper<>();
                     queryWrapper3.eq("id", student_id); // 等价于 WHERE id = #{classId}
 
@@ -223,7 +223,7 @@ public class ExcelUploadController {
                     String lastscoreString = row.getCell(12).getStringCellValue();
                     double last_score = Double.parseDouble(StrUtil.isBlank(lastscoreString) || lastscoreString.equals("参军") ? "0" : row.getCell(12).getStringCellValue());
                     double gpa = Double.parseDouble(StrUtil.isBlank(row.getCell(13).getStringCellValue()) ? "0" : row.getCell(13).getStringCellValue());
-                    //查询课程是否存在不存在添加
+                    //先查出课程是否存在不存在添加
                     QueryWrapper<Subject> queryWrapper2 = new QueryWrapper<>();
                     queryWrapper2.eq("id", subject_id); // 等价于 WHERE id = #{classId}
 
@@ -236,7 +236,7 @@ public class ExcelUploadController {
                         subjectMapper.insert(subject);
                     }
 
-                    //查询学生不存在则添加，默认密码123456
+                    //先查出学生不存在则添加，默认密码123456
                     QueryWrapper<User> queryWrapper3 = new QueryWrapper<>();
                     queryWrapper3.eq("id", student_id); // 等价于 WHERE id = #{classId}
 

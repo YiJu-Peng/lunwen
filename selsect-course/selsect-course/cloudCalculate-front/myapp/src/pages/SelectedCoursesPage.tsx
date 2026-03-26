@@ -11,7 +11,7 @@ import moment from 'moment';
 
 const { Title, Text } = Typography;
 
-// 扩展类型定义，针对课程项目添加颜色属性
+// 给课程项补一个颜色字段，方便前端展示
 interface ExtendedCourseItem {
   id?: number;
   subjectId?: number;
@@ -40,7 +40,7 @@ const SelectedCoursesPage: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const currentUser = initialState?.currentUser;
 
-  // 颜色生成函数，确保每个课程有不同的颜色
+  // 给不同课程分配不同颜色
   const generateColor = (index: number) => {
     const colors = [
       '#1890ff', '#52c41a', '#722ed1', '#fa8c16', '#eb2f96',
@@ -49,7 +49,7 @@ const SelectedCoursesPage: React.FC = () => {
     return colors[index % colors.length];
   };
 
-  // 获取已选课程
+  // 页面加载后先拉取已选课程
   useEffect(() => {
     fetchSelectedCourses();
   }, []);
@@ -68,11 +68,11 @@ const SelectedCoursesPage: React.FC = () => {
       });
 
       if (res && Array.isArray(res)){
-        // 为课程分配颜色
+        // 给每门课补上展示颜色
         const coloredCourses: ExtendedCourseItem[] = res.map((course: any, index: number) => ({
           ...course,
           color: generateColor(index),
-          // 添加临时教师名称和课程名称（如果API没有返回）
+          // 接口没带名称时，用 ID 先拼一个占位值
           teacherName: course.teacherName || `教师${course.teacherId}`,
           subjectName: course.subjectName || `课程${course.subjectId}`
         }));
@@ -107,7 +107,7 @@ const SelectedCoursesPage: React.FC = () => {
 
       if (res && res.data === '退课成功') {
         MaterialToast.success('退课成功');
-        // 更新本地数据
+        // 退课成功后把本地列表同步一下
         setSelectedCourses(selectedCourses.filter(course => course.id !== selectedCourse.id));
       } else {
         MaterialToast.error(res?.data || '退课失败');
@@ -125,18 +125,18 @@ const SelectedCoursesPage: React.FC = () => {
     setIsModalVisible(false);
   };
 
-  // 计算课程时间分布 - 用于动画效果的延迟
+  // 卡片按顺序做一点延迟动画
   const getAnimationDelay = (index: number) => {
     return index * 0.05;
   };
 
-  // 格式化时间
+  // 统一处理时间显示格式
   const formatTime = (time?: Date) => {
     if (!time) return '待定时间';
     return moment(time).format('YYYY-MM-DD HH:mm');
   };
 
-  // 展示课程信息卡片
+  // 渲染已选课程卡片
   const renderCourseCards = () => {
     if (selectedCourses.length === 0) {
       return (

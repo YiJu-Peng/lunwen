@@ -34,7 +34,7 @@ public class CurriculumServiceImpl extends ServiceImpl<CurriculumMapper, Curricu
         if (currentPageRequest.getIsCheck() != null) {
             queryWrapper.eq("isCheck", currentPageRequest.getIsCheck());
         }
-        // 添加其他条件...
+        // 补充维护其他条件...
 
         return curriculumMapper.selectPage(new Page<>(currentPageRequest.getCurrent(), currentPageRequest.getSize()), queryWrapper);
     }

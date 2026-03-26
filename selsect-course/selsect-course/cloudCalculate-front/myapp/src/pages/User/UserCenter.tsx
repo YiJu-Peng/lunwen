@@ -30,13 +30,13 @@ const UserCenter: React.FC = () => {
 
   const handleEditSubmit = (values) => {
     console.log('Form values:', values);
-    // 这里可以调用 API 更新用户资料
+    // 后续可以在这一段接入更新用户资料的接口
     setIsEditModalVisible(false);
   };
 
   const handlePasswordSubmit = (values) => {
     console.log('Form values:', values);
-    // 这里可以调用 API 更新用户密码
+    // 后续可以在这一段接入修改密码的接口
     setIsPasswordModalVisible(false);
   };
 

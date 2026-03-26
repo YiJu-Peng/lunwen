@@ -54,7 +54,7 @@ public class PostVO implements Serializable {
     private Date createTime;
 
     /**
-     * 更新时间
+     * 将时间同步到最新
      */
     private Date updateTime;
 

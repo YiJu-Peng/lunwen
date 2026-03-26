@@ -173,7 +173,7 @@ public class UserController {
     }
 
     /**
-     * 更新用户
+     * 将用户同步到最新
      *
      * @param userUpdateRequest
      * @param request
@@ -264,7 +264,7 @@ public class UserController {
         return ResultUtils.success(userVOPage);
     }
 
-    // 添加获取用户消息接口
+    // 补充维护获取用户消息接口
     /**
      * 获取用户消息
      *
@@ -311,7 +311,7 @@ public class UserController {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "消息不存在");
         }
         
-        // 更新消息状态为已读
+        // 将消息状态为已读同步到最新
         message.setIsRead(1);
         boolean updated = messageService.updateById(message);
         

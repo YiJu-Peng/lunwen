@@ -44,7 +44,7 @@ export const getSystemPreferredColor = (): string | null => {
   // 检测系统颜色主题
   try {
     // 检查是否有系统颜色主题API
-    // 这里只是示例，实际实现需要使用相关API
+    // 这段只是示例写法，实际接入时需要换成对应 API
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const time = new Date().getHours();
     
@@ -403,7 +403,7 @@ function hslToHex(h: number, s: number, l: number): string {
 
 // 辅助函数：调整颜色的饱和度和亮度
 function adjustColorSaturationAndLightness(hexColor: string, saturationFactor: number, lightnessFactor: number): string {
-  // 这里简化处理，实际应用需要更完善的颜色处理库
+  // 此处先做简化处理，实际应用需要更完善的颜色处理库
   return hexColor; // 示例中返回原色
 }
 

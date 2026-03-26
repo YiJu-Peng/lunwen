@@ -23,9 +23,9 @@ const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select;
 
-// 一周的日期标题
+// 周视图表头
 const WEEKDAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-// 课程时间段
+// 每天的上课时间段
 const TIME_SLOTS = [
   { start: '08:00', end: '09:40' }, // 第1节
   { start: '10:00', end: '11:40' }, // 第2节
@@ -34,7 +34,7 @@ const TIME_SLOTS = [
   { start: '18:30', end: '20:10' }, // 第5节，晚上课程
 ];
 
-// 课程项类型定义
+// 课表项结构
 interface ScheduleCourseItem {
   id?: number;
   subjectId?: number;
@@ -53,7 +53,7 @@ interface ScheduleCourseItem {
   gradient?: string;
 }
 
-// 颜色生成函数，确保每个课程有不同的颜色
+// 给不同课程分配不同颜色
 const generateColor = (index: number) => {
   const colors = [
     '#1890ff', '#52c41a', '#722ed1', '#fa8c16', '#eb2f96',
@@ -62,13 +62,13 @@ const generateColor = (index: number) => {
   return colors[index % colors.length];
 };
 
-// 渐变色背景生成函数，基于主色生成渐变
+// 根据主色拼一个渐变背景
 const generateGradient = (baseColor: string) => {
   return `linear-gradient(135deg, ${baseColor} 0%, ${baseColor}99 100%)`;
 };
 
 const SchedulePage: React.FC = () => {
-  // 设置动画CSS变量
+  // 初始化页面动效变量
   useMotionSetup();
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -83,7 +83,7 @@ const SchedulePage: React.FC = () => {
     fetchScheduleData();
   }, []);
 
-  // 获取课程表数据
+  // 拉取当前课表
   const fetchScheduleData = async () => {
     if (!currentUser?.id) {
       MaterialToast.error('用户未登录');
@@ -98,22 +98,22 @@ const SchedulePage: React.FC = () => {
       });
 
       if (Array.isArray(result)) {
-        // 为每个课程分配颜色
+        // 同一门课尽量保持同一种颜色
         const courseMap = new Map<number, string>();
         let colorIndex = 0;
 
         const processedSchedule = result.map((course: any, index: number) => {
-          // 确保课程有唯一颜色（基于科目ID）
+          // 用科目 id 作为颜色复用的依据
           if (course.subjectId && !courseMap.has(course.subjectId)) {
             courseMap.set(course.subjectId, generateColor(colorIndex++));
           }
 
           return {
             ...course,
-            // 如果没有教师名和课程名，使用ID代替
+            // 接口没返回名称时，先给个占位值
             teacherName: course.teacherName || `教师${course.teacherName}`,
             courseName: course.courseName || `课程${course.subjectName}`,
-            // 设置颜色和渐变
+            // 补上卡片颜色和渐变
             color: course.subjectId ? courseMap.get(course.subjectId) : generateColor(index),
             gradient: generateGradient(course.subjectId ?
               (courseMap.get(course.subjectId) || '#1890ff') :
@@ -134,17 +134,17 @@ const SchedulePage: React.FC = () => {
     }
   };
 
-  // 刷新课程表数据
+  // 手动刷新课表
   const handleRefresh = () => {
     setRefreshing(true);
     fetchScheduleData();
   };
 
-  // 滚动到今天（仅适用于周视图）
+  // 周视图下滚到今天所在的列
   const scrollToToday = () => {
     if (weekViewRef.current && viewType === 'week') {
-      const today = new Date().getDay(); // 0是周日，1-6是周一到周六
-      const dayIndex = today === 0 ? 6 : today - 1; // 转换为0-6，0是周一
+      const today = new Date().getDay(); // 0 是周日，1-6 是周一到周六
+      const dayIndex = today === 0 ? 6 : today - 1; // 转成 0-6，0 对应周一
 
       const dayWidth = weekViewRef.current.querySelector('.day-column')?.clientWidth || 100;
       const scrollLeft = dayIndex * dayWidth;
@@ -156,16 +156,16 @@ const SchedulePage: React.FC = () => {
     }
   };
 
-  // 按星期几分组课程
+  // 按星期把课程分组
   const getScheduleByDay = () => {
     const schedule: Record<number, ScheduleCourseItem[]> = {};
 
-    // 初始化每天的数组
+    // 先补齐周一到周日的空数组
     for (let i = 1; i <= 7; i++) {
       schedule[i] = [];
     }
 
-    // 将课程按星期几分组
+    // 再按 dayOfWeek 分发到对应列
     scheduleData.forEach(course => {
       if (course.dayOfWeek && course.dayOfWeek >= 1 && course.dayOfWeek <= 7) {
         schedule[course.dayOfWeek].push(course);
@@ -175,13 +175,13 @@ const SchedulePage: React.FC = () => {
     return schedule;
   };
 
-  // 格式化日期
+  // 统一时间显示格式
   const formatTime = (date?: Date) => {
     if (!date) return '';
     return moment(date).format('HH:mm');
   };
 
-  // 渲染周课表视图
+  // 渲染周课表
   const renderWeekView = () => {
     if (scheduleData.length === 0) {
       return (
@@ -207,7 +207,7 @@ const SchedulePage: React.FC = () => {
     return (
       <FadeInText>
         <div className="schedule-container" ref={weekViewRef}>
-          {/* 时间轴和周几的表头 */}
+          {/* 时间轴和周表头 */}
           <div className="schedule-header">
             <div className="time-header">时间</div>
             {WEEKDAYS.map((day, index) => (
@@ -220,9 +220,9 @@ const SchedulePage: React.FC = () => {
             ))}
           </div>
 
-          {/* 课程表内容区域 */}
+          {/* 课表主体 */}
           <div className="schedule-content">
-            {/* 时间轴列 */}
+            {/* 左侧时间轴 */}
             <div className="time-column">
               {TIME_SLOTS.map((slot, index) => (
                 <div className="time-slot" key={index}>
@@ -232,9 +232,9 @@ const SchedulePage: React.FC = () => {
               ))}
             </div>
 
-            {/* 周一到周日的列 */}
+            {/* 周一到周日的课程列 */}
             {WEEKDAYS.map((_, dayIndex) => {
-              const dayOfWeek = dayIndex + 1; // 1-7表示周一到周日
+              const dayOfWeek = dayIndex + 1; // 1-7 表示周一到周日
               const dayCourses = scheduleByDay[dayOfWeek] || [];
 
               return (
@@ -242,22 +242,22 @@ const SchedulePage: React.FC = () => {
                   className={`day-column ${new Date().getDay() === dayOfWeek ? 'today' : ''}`}
                   key={dayOfWeek}
                 >
-                  {/* 每个时间段的单元格 */}
+                  {/* 每个时间段对应一个格子 */}
                   {TIME_SLOTS.map((_, slotIndex) => (
                     <div className="time-cell" key={slotIndex}>
-                      {/* 找出在这个时间段的课程并渲染 */}
+                      {/* 找出落在当前时间段里的课程 */}
                       {dayCourses
                         .filter(course => {
                           const courseStart = course.startTime ? course.startTime : 0;
                           const courseEnd = course.endTime ? course.endTime : 0;
-                          // 判断课程是否在这个时间段
+                          // 判断课程是否覆盖当前时间段
                           return courseStart <= slotIndex + 1 && courseEnd >= slotIndex + 1;
                         })
                         .map((course, courseIndex) => {
-                          // 只在课程开始的时间段渲染
+                          // 只在课程起始节次渲染一次卡片
                           if (course.startTime !== slotIndex + 1) return null;
 
-                          // 计算课程跨越的时间段数量
+                          // 算一下这门课跨了几个时间段
                           const startSlot = course.startTime ? course.startTime - 1 : 0;
                           // 确保endSlot不会超出TIME_SLOTS数组范围
                           const endSlot = course.endTime ? Math.min(course.endTime - 1, TIME_SLOTS.length - 1) : startSlot;

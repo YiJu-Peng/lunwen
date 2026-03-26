@@ -62,7 +62,7 @@ public class user implements Serializable {
     private Date createtime;
 
     /**
-     * 更新时间
+     * 将时间同步到最新
      */
     private Date updatetime;
 

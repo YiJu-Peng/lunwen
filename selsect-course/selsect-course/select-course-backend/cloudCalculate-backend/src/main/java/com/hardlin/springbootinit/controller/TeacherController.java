@@ -30,13 +30,13 @@ public class TeacherController {
         return teacherService.getById(id);
     }
 
-    // 添加新教师
+    // 补充维护新教师
     @PostMapping
     public Boolean addTeacher(@RequestBody Teacher teacher) {
         return teacherService.save(teacher);
     }
 
-    // 更新教师信息
+    // 将教师信息同步到最新
     @PutMapping("/{id}")
     public Boolean updateTeacher(@PathVariable("id") Integer id, @RequestBody Teacher teacherDetails) {
         teacherDetails.setId(id);

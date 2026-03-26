@@ -96,7 +96,7 @@ public class CourseConflictServiceImpl implements CourseConflictService {
             enrolledCourseIds.add(enrollment.getSubjectId());
         }
         
-        // 查询已选课程信息
+        // 先查出已选课程信息
         List<Curriculum> enrolledCourses = new ArrayList<>();
         for (Integer courseId : enrolledCourseIds) {
             Curriculum course = curriculumMapper.selectById(courseId);

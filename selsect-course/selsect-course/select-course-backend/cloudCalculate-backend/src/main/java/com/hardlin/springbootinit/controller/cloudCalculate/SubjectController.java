@@ -47,7 +47,7 @@ public class SubjectController {
     @Autowired
     private EnrollmentClient enrollmentClient;
 
-    // 查询所有课程
+    // 先查出所有课程
     @GetMapping("/curriculums")
     public List<Curriculum> getAllCurriculums() {
         return curriculumService.getAllCurriculums();
@@ -84,7 +84,7 @@ public class SubjectController {
         }
     }
 
-    // 添加新课程
+    // 补充维护新课程
     @PostMapping("/curriculums")
     public Curriculum createCurriculum(@RequestBody Curriculum curriculum) {
         return curriculumService.createCurriculum(curriculum);
@@ -99,7 +99,7 @@ public class SubjectController {
         }
     }
 
-    // 更新课程
+    // 将课程同步到最新
     @PutMapping("/curriculums/{id}")
     public ResponseEntity<Curriculum> updateCurriculum(@PathVariable int id, @RequestBody Curriculum curriculum) {
         Curriculum updatedCurriculum = curriculumService.updateCurriculum(id, curriculum);

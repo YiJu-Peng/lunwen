@@ -1,5 +1,5 @@
 -- 添加科目数据
--- 注意：这里的科目ID需要与curriculum表中的subjectId对应
+-- 注意：科目 ID 需要和 curriculum 表中的 subjectId 保持对应
 DROP TABLE IF EXISTS `subject`;
 CREATE TABLE `subject` (
   `id` int NOT NULL,
@@ -67,7 +67,7 @@ INSERT INTO subject (id, subjectName, college, credit) VALUES
 (1040, '催化化学', '化学学院', 3.0);
 
 -- 添加教师数据
--- 注意：这里的教师ID需要与curriculum表中的teacherId对应
+-- 注意：教师 ID 需要和 curriculum 表中的 teacherId 保持对应
 DROP TABLE IF EXISTS `teacher`;
 CREATE TABLE `teacher` (
   `id` int NOT NULL,

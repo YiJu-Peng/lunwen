@@ -25,8 +25,8 @@ export async function getRoutes() {
 '15': React.lazy(() => import(/* webpackChunkName: "p__SchedulePage" */'@/pages/SchedulePage.tsx')),
 '16': React.lazy(() => import('./EmptyRoute')),
 '17': React.lazy(() => import(/* webpackChunkName: "p__404" */'@/pages/404.tsx')),
-'ant-design-pro-layout': React.lazy(() => import(/* webpackChunkName: "umi__plugin-layout__Layout" */'D:/selsect-course/cloudCalculate-front/myapp/src/.umi/plugin-layout/Layout.tsx')),
-'umi/plugin/openapi': React.lazy(() => import(/* webpackChunkName: "umi__plugin-openapi__openapi" */'D:/selsect-course/cloudCalculate-front/myapp/src/.umi/plugin-openapi/openapi.tsx')),
+'ant-design-pro-layout': React.lazy(() => import(/* webpackChunkName: "umi__plugin-layout__Layout" */'/workspace/src/.umi/plugin-layout/Layout.tsx')),
+'umi/plugin/openapi': React.lazy(() => import(/* webpackChunkName: "umi__plugin-openapi__openapi" */'/workspace/src/.umi/plugin-openapi/openapi.tsx')),
 },
   };
 }

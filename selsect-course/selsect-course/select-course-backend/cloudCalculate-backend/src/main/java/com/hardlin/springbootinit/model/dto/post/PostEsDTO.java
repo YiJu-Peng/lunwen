@@ -71,7 +71,7 @@ public class PostEsDTO implements Serializable {
     private Date createTime;
 
     /**
-     * 更新时间
+     * 将时间同步到最新
      */
     @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = DATE_TIME_PATTERN)
     private Date updateTime;

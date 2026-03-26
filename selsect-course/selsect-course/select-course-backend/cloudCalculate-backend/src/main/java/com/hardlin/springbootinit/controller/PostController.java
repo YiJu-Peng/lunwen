@@ -105,7 +105,7 @@ public class PostController {
     }
 
     /**
-     * 更新（仅管理员）
+     * 将（仅管理员）同步到最新
      *
      * @param postUpdateRequest
      * @return

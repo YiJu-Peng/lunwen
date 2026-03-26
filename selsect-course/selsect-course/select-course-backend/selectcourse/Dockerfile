@@ -2,7 +2,7 @@
 FROM openjdk:8-jdk-alpine
 WORKDIR /dockerWorkSpace
 
-# 添加应用
+# 补充维护应用
 ADD target/selectcourse-0.0.1-SNAPSHOT.jar selectcourse-0.0.1-SNAPSHOT.jar
 
 EXPOSE 8081

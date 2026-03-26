@@ -30,7 +30,7 @@ const CourseSelectionPage: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState<any>({});
   const [conflictResult, setConflictResult] = useState<API.ConflictCheckResult | null>(null);
   const [loading, setLoading] = useState(false);
-  // 添加分页状态
+  // 表格分页相关状态
   const [coursesData, setCoursesData] = useState<ExtendedCurriculum[]>([]);
   const [totalCourses, setTotalCourses] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -39,14 +39,14 @@ const CourseSelectionPage: React.FC = () => {
   const {initialState} = useModel('@@initialState');
   const currentUser = initialState?.currentUser;
 
-  // 选择课程
+  // 点击选课后，先做冲突检查
   const handleSelectCourse = async (course: any) => {
-    // 先检查课程冲突
+    // 先校验是否和已选课程冲突
     await checkCourseConflict(course);
     setSelectedCourse(course);
   };
 
-  // 检查课程冲突
+  // 选课前的冲突检查
   const checkCourseConflict = async (course: any) => {
     try {
       setLoading(true);
@@ -78,9 +78,9 @@ const CourseSelectionPage: React.FC = () => {
     }
   };
 
-  // 确认选课
+  // 用户确认后再提交选课
   const handleConfirmSelection = async () => {
-    // 在这里执行选课逻辑，例如调用后端接口进行选课
+    // 这里真正调用后端的选课接口
     const params = {
       curriculumId: selectedCourse.id,
       userId: currentUser?.id
@@ -89,10 +89,10 @@ const CourseSelectionPage: React.FC = () => {
     try {
       const res = await selectCourseUsingPost(params);
       if (res.code === 200) {
-        // 确保返回的数据是字符串
+        // 后端返回值不固定，这里做一次兜底
         const successMessage = typeof res.data === 'string' ? res.data : '选课成功';
         MaterialToast.success(successMessage);
-        // 刷新表格数据
+        // 成功后刷新当前列表
         actionRef.current?.reload();
       } else {
         MaterialToast.error(res.message || '选课失败');
@@ -106,13 +106,13 @@ const CourseSelectionPage: React.FC = () => {
     }
   };
 
-  // 强制选课
+  // 忽略冲突后继续选课
   const handleForceSelect = async () => {
     setIsConflictVisible(false);
     setIsModalVisible(true);
   };
 
-  // 取消
+  // 关闭弹窗
   const handleCancel = () => {
     setIsModalVisible(false);
     setIsConflictVisible(false);
@@ -120,7 +120,7 @@ const CourseSelectionPage: React.FC = () => {
 
   const actionRef = useRef<ActionType>();
 
-  // 加载课程数据
+  // 读取课程列表
   const fetchCourses = async (
     params: {
       current?: number;
@@ -136,11 +136,11 @@ const CourseSelectionPage: React.FC = () => {
       const res: any = await pageCurriculumsUsingGet({
         ...params,
         current: params.current || 1,
-        pageSize: params.pageSize || 10,
+        size: params.pageSize || 10,
       });
 
       if (res?.records) {
-        // 处理字符串类型的分页信息
+        // 有些接口把 total 返回成字符串，这里顺手兼容一下
         let total = 0;
         if (typeof res.total === 'string') {
           total = parseInt(res.total) || res.records.length;
@@ -148,7 +148,7 @@ const CourseSelectionPage: React.FC = () => {
           total = res.total || res.records.length;
         }
 
-        // 更新状态
+        // 同步页面上的分页数据
         setCoursesData(res.records);
         setTotalCourses(total);
 
@@ -161,7 +161,7 @@ const CourseSelectionPage: React.FC = () => {
 
         return {
           data: res.records,
-          total: total || res.records.length, // 确保总数不为0
+          total: total || res.records.length, // 总数字段异常时，至少回退到当前记录数
           success: true,
           pageSize: params.pageSize,
           current: params.current,

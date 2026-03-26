@@ -13,11 +13,11 @@ interface ResponseStructure {
 
 /**
  * @name 错误处理
- * pro 自带的错误处理， 可以在这里做自己的改动
+ * pro 自带了错误处理能力，按需可以在这一层继续扩展
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const requestConfig: RequestConfig = {
-  baseURL: 'http://localhost:9000/api', // 修改为网关地址
+  baseURL: 'http://localhost:9900/api', // 本地联调时统一走网关
   withCredentials: true,
   // 请求拦截器
   requestInterceptors: [

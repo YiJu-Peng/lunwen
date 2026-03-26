@@ -49,7 +49,7 @@ public class CurriculumServiceImpl extends ServiceImpl<CurriculumMapper, Curricu
     @Override
     public List<Curriculum> getStudentSelectedCourses(Long userId) {
         // 实际的实现应该查询选课表和课程表的关联数据
-        // 这里简化处理，直接返回所有课程作为示例
+        // 此处先做简化处理，直接返回所有课程作为示例
         // 在实际项目中，应根据数据库模型和业务逻辑进行修改
         return list();
     }

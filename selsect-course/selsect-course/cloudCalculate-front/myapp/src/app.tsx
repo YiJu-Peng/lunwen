@@ -261,7 +261,7 @@ export function rootContainer(container: React.ReactNode) {
       timeOfDay
     );
     
-    // 更新主题配置
+    // 将主题配置同步到最新
     const updatedTheme = prefersDarkMode
       ? generateDarkTheme(baseColor)
       : {

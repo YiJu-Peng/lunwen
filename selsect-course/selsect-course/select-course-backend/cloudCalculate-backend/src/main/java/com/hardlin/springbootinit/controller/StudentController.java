@@ -36,13 +36,13 @@ public class StudentController {
         return studentService.getById(id);
     }
 
-    // 添加新学生
+    // 补充维护新学生
     @PostMapping
     public Boolean addStudent(Student student) {
         return studentService.save(student);
     }
 
-    // 更新学生信息
+    // 将学生信息同步到最新
     @PutMapping("/{id}")
     public Boolean updateStudent(Long id,Student studentDetails) {
         return studentService.update(studentDetails,new LambdaQueryWrapper<Student>()

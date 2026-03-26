@@ -3,14 +3,14 @@
 // DO NOT CHANGE IT MANUALLY!
 import React, { useEffect, useState } from 'react';
 import { ApplyPluginsType } from 'umi';
-import { renderClient, RenderClientOpts } from 'D:/selsect-course/cloudCalculate-front/myapp/node_modules/@umijs/renderer-react';
+import { renderClient, RenderClientOpts } from '/workspace/node_modules/@umijs/renderer-react';
 import { createHistory } from './core/history';
 import { createPluginManager } from './core/plugin';
 import { getRoutes } from './core/route';
 import type { Location } from 'history';
 
-import 'D:/selsect-course/cloudCalculate-front/myapp/src/global.less';
-import 'D:/selsect-course/cloudCalculate-front/myapp/src/global.tsx';
+import '/workspace/src/global.less';
+import '/workspace/src/global.tsx';
 import 'antd/dist/reset.css';
 const publicPath = '/';
 const runtimePublicPath = false;

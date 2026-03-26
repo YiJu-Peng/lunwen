@@ -64,7 +64,7 @@ public class SelectCourseController {
                 
                 BeanUtils.copyProperties(curriculum1, curriculumVO);
                 
-                // 添加空指针检查
+                // 补充维护空指针检查
                 if (curriculum1.getSubjectId() != null) {
                     try {
                         Subject subject = subjectService.getById(curriculum1.getSubjectId());
@@ -74,14 +74,14 @@ public class SelectCourseController {
                             curriculumVO.setSubjectName("未知课程");
                         }
                     } catch (Exception e) {
-                        // 处理查询异常
+                        // 负责整理查询异常
                         curriculumVO.setSubjectName("未知课程");
                     }
                 } else {
                     curriculumVO.setSubjectName("未知课程");
                 }
                 
-                // 添加空指针检查
+                // 补充维护空指针检查
                 if (curriculum1.getTeacherId() != null) {
                     try {
                         // 使用增强的查询方法，同时查询id和teacherId
@@ -92,7 +92,7 @@ public class SelectCourseController {
                             curriculumVO.setTeacherName("未知教师");
                         }
                     } catch (Exception e) {
-                        // 处理查询异常
+                        // 负责整理查询异常
                         curriculumVO.setTeacherName("未知教师");
                     }
                 } else {
@@ -148,7 +148,7 @@ public class SelectCourseController {
         // 填充科目名称和教师名称
         if (enrollments != null) {
             for (CurriculumVO curriculum : enrollments) {
-                // 添加空指针检查
+                // 补充维护空指针检查
                 if (curriculum.getSubjectId() != null) {
                     try {
                         Subject subject = subjectService.getById(curriculum.getSubjectId());
@@ -158,12 +158,12 @@ public class SelectCourseController {
                             curriculum.setSubjectName("课程" + curriculum.getSubjectId());
                         }
                     } catch (Exception e) {
-                        // 处理查询异常
+                        // 负责整理查询异常
                         curriculum.setSubjectName("课程" + curriculum.getSubjectId());
                     }
                 }
                 
-                // 添加空指针检查
+                // 补充维护空指针检查
                 if (curriculum.getTeacherId() != null) {
                     try {
                         // 使用增强的查询方法查询教师信息
@@ -174,7 +174,7 @@ public class SelectCourseController {
                             curriculum.setTeacherName("教师" + curriculum.getTeacherId());
                         }
                     } catch (Exception e) {
-                        // 处理查询异常
+                        // 负责整理查询异常
                         curriculum.setTeacherName("教师" + curriculum.getTeacherId());
                     }
                 }

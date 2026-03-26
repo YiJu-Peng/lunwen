@@ -27,7 +27,7 @@
         "src/.umi/*"
       ],
       "@umijs/max": [
-        "D:\\selsect-course\\cloudCalculate-front\\myapp\\node_modules\\umi"
+        "/workspace/node_modules/umi"
       ],
       "@umijs/max/typings": [
         "src/.umi/typings"

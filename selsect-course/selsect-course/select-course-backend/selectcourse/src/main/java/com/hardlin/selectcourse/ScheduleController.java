@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 课程表控制器
+ * 对外提供课表相关接口的入口类
  */
 @RestController
 @RequestMapping("/api/schedule")

@@ -140,7 +140,7 @@ const ToastContainer: React.FC = () => {
 // 创建Toast容器DOM节点
 let containerElement: HTMLElement | null = null;
 
-// 初始化Toast容器
+// 先把Toast容器准备出来
 const initToastContainer = () => {
   if (!containerElement && typeof document !== 'undefined') {
     containerElement = document.createElement('div');

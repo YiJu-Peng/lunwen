@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * 课程表控制器
+ * 课表相关接口
  *
  * @author DawnCclin
  */
@@ -44,7 +44,7 @@ public class ScheduleController {
     private CurriculumService curriculumService;
 
     /**
-     * 获取当前用户的课程表
+     * 查询当前登录用户的课表
      *
      * @param request HTTP请求
      * @return 课程表数据
@@ -59,15 +59,15 @@ public class ScheduleController {
         scheduleVO.setUserId(userId);
         scheduleVO.setUserType(userType);
         
-        // 获取当前周次信息，这里简化处理，实际应从学期管理中获取
+        // 周次先按日期估算，后续可以接入学期配置
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         scheduleVO.setCurrentPeriod("第" + (calendar.get(Calendar.WEEK_OF_YEAR) - 8) + "周，" + sdf.format(calendar.getTime()));
         
-        // 设置课程表类型
+        // 当前统一按周课表返回
         scheduleVO.setScheduleType("周课表");
         
-        // 根据用户类型获取相应的课程表数据
+        // 学生和教师分别走各自的查询逻辑
         if ("学生".equals(userType)) {
             return getStudentSchedule(userId, scheduleVO);
         } else if ("教师".equals(userType)) {
@@ -81,7 +81,7 @@ public class ScheduleController {
     }
     
     /**
-     * 获取指定学生的课程表
+     * 查询指定学生的课表
      *
      * @param studentId 学生ID
      * @return 课程表数据
@@ -101,19 +101,19 @@ public class ScheduleController {
         scheduleVO.setName(student.getStudentName());
         scheduleVO.setUserType("学生");
         
-        // 获取当前周次信息
+        // 顺手补上当前周次
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         scheduleVO.setCurrentPeriod("第" + (calendar.get(Calendar.WEEK_OF_YEAR) - 8) + "周，" + sdf.format(calendar.getTime()));
         
-        // 设置课程表类型
+        // 当前统一按周课表返回
         scheduleVO.setScheduleType("周课表");
         
         return getStudentSchedule(user.getId(), scheduleVO);
     }
     
     /**
-     * 获取指定教师的课程表
+     * 查询指定教师的课表
      *
      * @param teacherId 教师ID
      * @return 课程表数据
@@ -133,22 +133,22 @@ public class ScheduleController {
         scheduleVO.setName(teacher.getTeacherName());
         scheduleVO.setUserType("教师");
         
-        // 获取当前周次信息
+        // 顺手补上当前周次
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         scheduleVO.setCurrentPeriod("第" + (calendar.get(Calendar.WEEK_OF_YEAR) - 8) + "周，" + sdf.format(calendar.getTime()));
         
-        // 设置课程表类型
+        // 当前统一按周课表返回
         scheduleVO.setScheduleType("周课表");
         
         return getTeacherSchedule(user.getId(), scheduleVO);
     }
     
     /**
-     * 获取学生课程表
+     * 组装学生课表
      */
     private BaseResponse<ScheduleVO> getStudentSchedule(Long userId, ScheduleVO scheduleVO) {
-        // 查询学生信息
+        // 先查学生档案
         Student student = studentService.lambdaQuery().eq(Student::getUserId, userId).one();
         if (student == null) {
             return ResultUtils.error(40000, "学生信息不存在");
@@ -157,20 +157,20 @@ public class ScheduleController {
         scheduleVO.setPersonId(student.getId().longValue());
         scheduleVO.setName(student.getStudentName());
         
-        // 获取学生选课的课程，实际实现需根据您的选课逻辑来调整
+        // 先汇总学生当前已选课程
         List<Curriculum> selectedCourses = curriculumService.getStudentSelectedCourses(userId);
         
-        // 处理课程数据
+        // 再转成课表结构
         processCourseData(selectedCourses, scheduleVO);
         
         return ResultUtils.success(scheduleVO);
     }
     
     /**
-     * 获取教师课程表
+     * 组装教师课表
      */
     private BaseResponse<ScheduleVO> getTeacherSchedule(Long userId, ScheduleVO scheduleVO) {
-        // 查询教师信息
+        // 先查教师档案
         Teacher teacher = teacherService.lambdaQuery().eq(Teacher::getUserId, userId).one();
         if (teacher == null) {
             return ResultUtils.error(40000, "教师信息不存在");
@@ -179,44 +179,44 @@ public class ScheduleController {
         scheduleVO.setPersonId(teacher.getId().longValue());
         scheduleVO.setName(teacher.getTeacherName());
         
-        // 获取教师授课的课程
+        // 把教师名下的授课记录都查出来
         List<Curriculum> teachingCourses = curriculumService.lambdaQuery()
                 .eq(Curriculum::getTeacherId, teacher.getId())
                 .list();
         
-        // 处理课程数据
+        // 再转成课表结构
         processCourseData(teachingCourses, scheduleVO);
         
         return ResultUtils.success(scheduleVO);
     }
     
     /**
-     * 处理课程数据，生成课程表
+     * 把课程记录转换成课表结构
      */
     private void processCourseData(List<Curriculum> courses, ScheduleVO scheduleVO) {
         Map<Integer, List<ScheduleCourseItemVO>> scheduleData = new HashMap<>();
         List<ScheduleCourseItemVO> allCourses = new ArrayList<>();
         
-        // 初始化每天的课程列表
+        // 先把周一到周日的容器补齐
         for (int i = 1; i <= 7; i++) {
             scheduleData.put(i, new ArrayList<>());
         }
         
-        // 随机颜色数组，用于课程显示
+        // 课表卡片用到的颜色池
         String[] colors = {
             "#FF5733", "#33FF57", "#3357FF", "#F033FF", "#FF33A1", 
             "#33FFF0", "#F3FF33", "#FF8C33", "#8C33FF", "#33FF8C"
         };
         
-        // 处理每门课程
+        // 逐条组装前端要展示的数据
         int colorIndex = 0;
         for (Curriculum course : courses) {
             ScheduleCourseItemVO courseItem = new ScheduleCourseItemVO();
             courseItem.setCurriculumId(course.getId().longValue());
-            // 这里需要先查询课程对应的科目名称
-            courseItem.setSubjectName("科目" + course.getSubjectId()); // 实际应从科目服务获取
+            // 科目名称这里先用占位值
+            courseItem.setSubjectName("科目" + course.getSubjectId()); // 正式环境下更建议从科目服务读取
             
-            // 根据教师ID获取教师名称
+            // 教师名称再按 teacherId 查一遍
             Teacher teacher = teacherService.getById(course.getTeacherId());
             if (teacher != null) {
                 courseItem.setTeacherName(teacher.getTeacherName());
@@ -225,15 +225,15 @@ public class ScheduleController {
             
             courseItem.setLocation(course.getLocation());
             
-            // 处理上课时间
+            // 把上课时间拆成前端需要的字段
             Date teachingTime = course.getTeachingTime();
             if (teachingTime != null) {
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(teachingTime);
                 
-                // 获取星期几 (1-7)
+                // 先拿到星期几
                 int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-                // Calendar的星期日是1，星期六是7，需要转换为我们的1-7（周一到周日）
+                // Calendar 的周序和业务定义不一致，这里做一次换算
                 dayOfWeek = dayOfWeek == 1 ? 7 : dayOfWeek - 1;
                 
                 courseItem.setDayOfWeek(dayOfWeek);
@@ -243,21 +243,21 @@ public class ScheduleController {
                 courseItem.setEndHour(cal.get(Calendar.HOUR_OF_DAY));
                 courseItem.setEndMinute(cal.get(Calendar.MINUTE));
                 
-                // 格式化上课时间
+                // 拼一个给前端直接展示的时间串
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
                 courseItem.setTeachingTime(sdf.format(teachingTime) + "-" + sdf.format(cal.getTime()));
                 
-                // 默认每周都有课
+                // 这里先按每周都有课处理
                 courseItem.setWeeks("1-16");
                 
-                // 设置课程颜色
+                // 给课程分配展示颜色
                 courseItem.setColor(colors[colorIndex % colors.length]);
                 colorIndex++;
                 
-                // 添加到对应天的列表中
+                // 放进当天的课程列表
                 scheduleData.get(dayOfWeek).add(courseItem);
                 
-                // 添加到所有课程列表
+                // 顺手也放进总课程列表
                 allCourses.add(courseItem);
             }
         }

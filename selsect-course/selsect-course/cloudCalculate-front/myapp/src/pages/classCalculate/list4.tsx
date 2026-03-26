@@ -122,7 +122,7 @@ const InterfaceAnalysis: React.FC = () => {
     legend: {
       top: 'bottom'
     },
-    tooltip: { // 添加tooltip配置
+    tooltip: { // 补充维护tooltip配置
       trigger: 'item', // 触发类型，默认为item，即数据项图形触发。
       formatter: '{a} <br/>{b}: {c}% ({d}%)' // 自定义悬浮提示内容格式，{a}：系列名，{b}：数据名，{c}：数据值，{d}%：百分比。
     },

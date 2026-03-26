@@ -64,11 +64,11 @@ const InkLoader: React.FC<InkLoaderProps> = ({
     
     // 动画循环
     const animate = () => {
-      // 添加淡入透明效果
+      // 补充维护淡入透明效果
       ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // 更新和绘制粒子
+      // 将和绘制粒子同步到最新
       particles.forEach((p, index) => {
         p.x += p.vx * p.speed;
         p.y += p.vy * p.speed;
@@ -123,7 +123,7 @@ const InkLoader: React.FC<InkLoaderProps> = ({
       }
     }
     
-    // 初始化粒子并开始动画
+    // 先把粒子并开始动画准备出来
     createInkParticles();
     const animationId = requestAnimationFrame(animate);
     

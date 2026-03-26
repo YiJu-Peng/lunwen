@@ -69,7 +69,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         
         // 注意：以前的实现是基于teachingTime日期过滤当前周的课程
         // 现在的实现直接返回所有课程，因为我们使用dayOfWeek来确定周几
-        // 如果需要根据学期或其他日期范围筛选，可以在这里添加相应的逻辑
+        // 如果后续要按学期或日期范围筛选，可以继续在这段逻辑里补充
     }
     
     /**
@@ -98,7 +98,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             return;
         }
         
-        // 查询科目名称
+        // 先查出科目名称
         Map<Long, String> subjectMap = new java.util.HashMap<>();
         if (!subjectIds.isEmpty()) {
             try {
@@ -120,7 +120,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
         }
         
-        // 查询教师名称
+        // 先查出教师名称
         Map<Long, String> teacherMap = new java.util.HashMap<>();
         if (!teacherIds.isEmpty()) {
             try {

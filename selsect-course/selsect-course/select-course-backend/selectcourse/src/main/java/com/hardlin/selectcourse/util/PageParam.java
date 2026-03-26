@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2999 杭州有赞科技有限公司  All rights reserved.
+ * Copyright (c) 2018-2999 杭州有赞科技有限公司 All rights reserved.
  *
  * https://www.youzan.com/
  *
@@ -46,7 +46,7 @@ public class PageParam<T> extends PageDTO<T> {
     private long current = 1;
 
     /**
-     * 查询数据列表
+     * 先查出数据列表
      */
 
     private List<T> records;

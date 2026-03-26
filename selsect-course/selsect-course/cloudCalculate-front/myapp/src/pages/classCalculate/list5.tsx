@@ -87,7 +87,7 @@ const InterfaceAnalysis: React.FC = () => {
         type: 'value'
       }
     ],
-    dataZoom: [ // 添加数据区域缩放组件
+    dataZoom: [ // 补充维护数据区域缩放组件
       {
         type: 'slider', // 类型为滑块型
         show: true, // 显示滑块

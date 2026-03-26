@@ -78,23 +78,23 @@ public class CalculateController {
         return reasonCountDTOList;
     }
     @GetMapping("/list3")
-    //计算出来   "name": "A",
+    //计算出来 "name": "A",
     //    "studentCount": "124",
     //    "averageScore": "74"
-    // 算两个图 一个老师 和平时成绩的关系  一个老师教的学生数量和平时成绩
+    // 算两个图 一个老师 和平时成绩的关系 一个老师教的学生数量和平时成绩
     public List<TeacherCountDTO> list3(){
         List<TeacherCountDTO> teacherCountDTOS = scoreMapper.analyzeTeacherPerformanceWithAnnotation();
         return teacherCountDTOS;
     }
 
 
-    //平时成绩与挂科率计算  根据 平成绩小于60 75 80 90 分组 然后算每个区间的挂科人数
+    //平时成绩与挂科率计算 根据 平成绩小于60 75 80 90 分组 然后算每个区间的挂科人数
     @GetMapping("/list4")
     public List<UsualScoreDTO> list4(){
         List<UsualScoreDTO> failRateByUsualScoreRange = scoreMapper.getFailRateByUsualScoreRange();
         return failRateByUsualScoreRange;
     }
-    //班级成绩分析  哪个班期末成绩高 根据班级分组 然后计算 每个班每门课的平均分
+    //班级成绩分析 哪个班期末成绩高 根据班级分组 然后计算 每个班每门课的平均分
     @GetMapping("/list5")
     public List<ClassesAvgDTO> list5(){
         List<ClassesAvgDTO> classSubjectAverageScores = scoreMapper.getClassSubjectAverageScores();

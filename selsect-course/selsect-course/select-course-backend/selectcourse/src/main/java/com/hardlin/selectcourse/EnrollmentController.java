@@ -65,7 +65,7 @@ public class EnrollmentController {
                     .map(Enrollment::getCurriculumId)
                     .collect(Collectors.toList());
             
-            // 查询对应的课程详情
+            // 先查出对应的课程详情
             LambdaQueryWrapper<Curriculum> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.in(Curriculum::getId, curriculumIds);
             List<Curriculum> curriculums = curriculumService.list(queryWrapper);
