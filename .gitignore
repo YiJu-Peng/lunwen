@@ -1,10 +1,41 @@
-# 强制忽略导致推送失败的大文件
+# 办公文档与大文件
 14-软件工程-石啸林.pptx
-
-# 忽略所有PowerPoint文件，避免未来问题
 *.pptx
 *.ppt
+
+# 临时文件
+*~
+.~lock.*
+*.swp
+*.swo
 
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# IDE
+.idea/
+
+# Node / Umi build artifacts
+node_modules/
+dist/
+build/
+.umi/
+
+# Java / Maven / Gradle build artifacts
+target/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Project backups
+*_backup_*/
+
+# Generated screenshots and exported images
+screenshot_*.png
+图4-*.png
