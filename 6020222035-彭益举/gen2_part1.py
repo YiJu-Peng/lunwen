@@ -1,0 +1,389 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""改进版论文生成器 - Part1: 格式辅助函数 + 封面/摘要/目录
+格式依据：附件3：江西农业大学本科毕业论文模板.doc
+"""
+from pathlib import Path
+
+from docx import Document
+from docx.shared import Pt, Cm
+from docx.enum.section import WD_SECTION
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
+
+BASE_DIR = Path(__file__).resolve().parent
+FIGURES = '/home/pengyiju/code/lunwen/lunwen/6020222035-彭益举/figures/'
+OUT = '/home/pengyiju/code/lunwen/lunwen/6020222035-彭益举/2425_41_10475_080902_6020222035_LW.docx'
+FRONT_MATTER_TEMPLATE = next(BASE_DIR.rglob('2425_41_10475_080902_602022203.docx'))
+
+doc = Document(str(FRONT_MATTER_TEMPLATE))
+doc.core_properties.author = '彭益举'
+doc.core_properties.last_modified_by = '彭益举'
+doc.core_properties.title = '基于微服务架构的高校智能选课系统设计与实现'
+doc.core_properties.subject = '江西农业大学本科毕业论文'
+
+BODY_HEADER = '江西农业大学本科毕业论文（设计、创作）'
+
+# ── 页面设置：A4，与范本一致 ────────────────────────────────────
+def apply_section_layout(section):
+    section.page_height = Cm(29.7)
+    section.page_width = Cm(21.0)
+    section.left_margin = Cm(2.8)
+    section.right_margin = Cm(2.5)
+    section.top_margin = Cm(2.5)
+    section.bottom_margin = Cm(2.5)
+    section.header_distance = Cm(1.5)
+    section.footer_distance = Cm(1.5)
+
+
+def clear_story(story):
+    p = story.paragraphs[0] if story.paragraphs else story.add_paragraph()
+    p.clear()
+    pPr = p._p.get_or_add_pPr()
+    existing_pbdr = pPr.find(qn('w:pBdr'))
+    if existing_pbdr is not None:
+        pPr.remove(existing_pbdr)
+    for old_p in story.paragraphs[1:]:
+        old_p._element.getparent().remove(old_p._element)
+    return p
+
+
+def set_page_numbering(section, fmt=None, start=None):
+    sectPr = section._sectPr
+    existing = sectPr.find(qn('w:pgNumType'))
+    if existing is not None:
+        sectPr.remove(existing)
+    if fmt is None and start is None:
+        return
+
+    pg_num = OxmlElement('w:pgNumType')
+    if fmt is not None:
+        pg_num.set(qn('w:fmt'), fmt)
+    if start is not None:
+        pg_num.set(qn('w:start'), str(start))
+
+    insert_at = len(sectPr)
+    for idx, child in enumerate(sectPr):
+        if child.tag in {qn('w:cols'), qn('w:docGrid')}:
+            insert_at = idx
+            break
+    sectPr.insert(insert_at, pg_num)
+
+
+def set_header_text(paragraph, text):
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    pf = paragraph.paragraph_format
+    pf.space_before = Pt(0)
+    pf.space_after = Pt(0)
+    pf.first_line_indent = Pt(0)
+
+    pPr = paragraph._p.get_or_add_pPr()
+    existing_pbdr = pPr.find(qn('w:pBdr'))
+    if existing_pbdr is not None:
+        pPr.remove(existing_pbdr)
+    pbdr = OxmlElement('w:pBdr')
+    bottom = OxmlElement('w:bottom')
+    bottom.set(qn('w:val'), 'single')
+    bottom.set(qn('w:sz'), '4')
+    bottom.set(qn('w:space'), '1')
+    bottom.set(qn('w:color'), 'auto')
+    pbdr.append(bottom)
+    pPr.append(pbdr)
+
+    run = paragraph.add_run(text)
+    ef(run, east='宋体', west='Times New Roman', size=10.5, bold=False)
+
+
+def set_footer_page_number(paragraph):
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    pf = paragraph.paragraph_format
+    pf.space_before = Pt(0)
+    pf.space_after = Pt(0)
+    pf.first_line_indent = Pt(0)
+
+    run = paragraph.add_run()
+    run.font.name = 'Times New Roman'
+    run.font.size = Pt(10.5)
+    set_east_asia_font(run, '宋体')
+    for tag, val in [('w:fldChar', 'begin'), ('w:instrText', 'PAGE'), ('w:fldChar', 'end')]:
+        el = OxmlElement(tag)
+        if tag == 'w:instrText':
+            el.text = val
+        else:
+            el.set(qn('w:fldCharType'), val)
+        run._r.append(el)
+
+
+def configure_section(section, header_text=None, show_page_number=False,
+                      page_number_format=None, page_number_start=None):
+    apply_section_layout(section)
+    section.different_first_page_header_footer = False
+    section.header.is_linked_to_previous = False
+    section.footer.is_linked_to_previous = False
+
+    header_p = clear_story(section.header)
+    footer_p = clear_story(section.footer)
+    if header_text:
+        set_header_text(header_p, header_text)
+    if show_page_number:
+        set_footer_page_number(footer_p)
+    set_page_numbering(section, page_number_format, page_number_start)
+
+
+def start_section(header_text=None, show_page_number=False,
+                  page_number_format=None, page_number_start=None):
+    section = doc.add_section(WD_SECTION.NEW_PAGE)
+    configure_section(
+        section,
+        header_text=header_text,
+        show_page_number=show_page_number,
+        page_number_format=page_number_format,
+        page_number_start=page_number_start,
+    )
+    return section
+
+
+def trim_document_to_prefix(keep_body_elements):
+    """保留旧文档前 keep_body_elements 个 body 元素，删除其后的旧正文。"""
+    body = doc._body._element
+    children = list(body)
+    for child in children[keep_body_elements:]:
+        if child.tag == qn('w:sectPr'):
+            continue
+        body.remove(child)
+
+
+trim_document_to_prefix(26)
+configure_section(doc.sections[0], header_text=None, show_page_number=False)
+
+# ══════════════════════════════════════════════════════════════
+# 辅助函数（严格按模板格式）
+# ══════════════════════════════════════════════════════════════
+
+def set_east_asia_font(run, name):
+    """同时设置中西文字体"""
+    rpr = run._r.get_or_add_rPr()
+    rFonts = rpr.get_or_add_rFonts()
+    rFonts.set(qn('w:eastAsia'), name)
+
+def ef(run, east='宋体', west=None, size=12, bold=False):
+    """设置run的字体：中文字体(east)、西文字体(west)、字号、粗体"""
+    if east:
+        run.font.name = east
+        set_east_asia_font(run, east)
+    if west:
+        run.font.name = west
+    run.font.size = Pt(size)
+    run.font.bold = bold
+
+def body(text):
+    """正文段落：小四(12pt)宋体，首行缩进2字符(24pt)，固定行距20pt"""
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    pf = p.paragraph_format
+    pf.space_before = Pt(0); pf.space_after = Pt(0)
+    pf.line_spacing = Pt(20)
+    pf.first_line_indent = Pt(24)   # 2×12pt = 24pt
+    r = p.add_run(text)
+    ef(r, east='宋体', west='Times New Roman', size=12)
+    return p
+
+def h1(text):
+    """一级标题（章）：四号(14pt)黑体，居中，前后各12pt
+    对应模板：摘要/章标题/参考文献/致谢等居中标题"""
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    pf = p.paragraph_format
+    pf.space_before = Pt(12); pf.space_after = Pt(12)
+    pf.line_spacing = Pt(20)
+    pf.first_line_indent = Pt(0)
+    r = p.add_run(text)
+    ef(r, east='黑体', size=14, bold=True)
+    return p
+
+def h2(text):
+    """二级标题（节）：小四(12pt)黑体加粗，左对齐，前6pt后3pt"""
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    pf = p.paragraph_format
+    pf.space_before = Pt(6); pf.space_after = Pt(3)
+    pf.line_spacing = Pt(20)
+    pf.first_line_indent = Pt(0)
+    r = p.add_run(text)
+    ef(r, east='黑体', size=12, bold=True)
+    return p
+
+def h3(text):
+    """三级标题（小节）：小四(12pt)黑体加粗，左对齐，前3pt后0pt"""
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    pf = p.paragraph_format
+    pf.space_before = Pt(3); pf.space_after = Pt(0)
+    pf.line_spacing = Pt(20)
+    pf.first_line_indent = Pt(0)
+    r = p.add_run(text)
+    ef(r, east='黑体', size=12, bold=True)
+    return p
+
+def insert_fig(fname, caption, w=13.0):
+    """插入图片并添加图注（宋体小四居中）"""
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run()
+    try:
+        run.add_picture(FIGURES + fname, width=Cm(w))
+    except Exception:
+        ef(run, east='宋体', size=10)
+        run.text = f'[图片：{fname}]'
+    pc = doc.add_paragraph()
+    pc.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    pc.paragraph_format.space_before = Pt(3)
+    pc.paragraph_format.space_after = Pt(6)
+    pc.paragraph_format.line_spacing = Pt(20)
+    rc = pc.add_run(caption)
+    ef(rc, east='宋体', west='Times New Roman', size=10.5)
+    return p
+
+def tbl_add(title, headers, rows):
+    """添加表格（含表题）"""
+    pt = doc.add_paragraph()
+    pt.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    pt.paragraph_format.space_before = Pt(6)
+    pt.paragraph_format.space_after = Pt(3)
+    pt.paragraph_format.line_spacing = Pt(20)
+    rt = pt.add_run(title)
+    ef(rt, east='宋体', west='Times New Roman', size=10.5)
+
+    # python-docx 的 doc.add_table() 只会按文档尾部插入。
+    # 这里先放一个占位段落，再把表移动到表题后面，避免表格串到目录前。
+    tail = doc.add_paragraph()
+    tail.paragraph_format.space_after = Pt(6)
+
+    t = doc.add_table(rows=1+len(rows), cols=len(headers))
+    t.style = 'Table Grid'
+    for i, h in enumerate(headers):
+        c = t.rows[0].cells[i]; c.text = h
+        for rn in c.paragraphs[0].runs:
+            ef(rn, east='宋体', size=10, bold=True)
+    for ri, row in enumerate(rows):
+        for ci, v in enumerate(row):
+            c = t.rows[ri+1].cells[ci]; c.text = str(v)
+            for rn in c.paragraphs[0].runs:
+                ef(rn, east='宋体', size=10)
+    pt._p.addnext(t._tbl)
+
+def code_block(lines):
+    """代码块：仿宋9pt，左缩进1cm"""
+    for line in lines:
+        p = doc.add_paragraph()
+        p.paragraph_format.left_indent = Cm(1)
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(0)
+        p.paragraph_format.line_spacing = Pt(15)
+        r = p.add_run(line)
+        r.font.name = 'Courier New'
+        set_east_asia_font(r, '仿宋')
+        r.font.size = Pt(9)
+    doc.add_paragraph().paragraph_format.space_after = Pt(6)
+
+# ══════════════════════════════════════════════════════════════
+# 目 录
+# ══════════════════════════════════════════════════════════════
+h1('目  录')
+toc = [
+    ('摘  要', 'I'),('Abstract', 'II'),
+    ('第 1 章  绪论', '1'),('  1.1  课题研究背景及意义', '1'),('  1.2  国内外研究现状', '2'),
+    ('  1.3  论文的主要研究内容', '4'),('  1.4  论文的组织结构', '6'),('  1.5  本章小结', '7'),
+    ('第 2 章  系统开发相关技术分析', '8'),('  2.1  相关技术', '8'),
+    ('  2.2  开发环境', '13'),('  2.3  本章小结', '14'),
+    ('第 3 章  可行性与需求分析', '15'),('  3.1  可行性分析', '15'),
+    ('  3.2  功能需求分析', '17'),('  3.3  本章小结', '19'),
+    ('第 4 章  系统概要设计', '20'),('  4.1  系统架构设计', '20'),
+    ('  4.2  总体结构设计', '21'),('  4.3  功能模块设计', '23'),
+    ('  4.4  数据库设计', '26'),('  4.5  本章小结', '30'),
+    ('第 5 章  系统详细设计与实现', '31'),('  5.1  智能课程推荐模块', '31'),
+    ('  5.2  选课模块的实现', '33'),('  5.3  课程冲突检测模块', '37'),
+    ('  5.4  系统管理模块的实现', '39'),('  5.5  消息通知模块的实现', '41'),
+    ('  5.6  系统安全模块的实现', '42'),('  5.7  本章小结', '45'),
+    ('第 6 章  系统测试', '46'),('  6.1  测试设计', '46'),('  6.2  主要功能测试', '46'),
+    ('  6.3  性能压力测试', '51'),('  6.4  本章小结', '52'),
+    ('第 7 章  总结与展望', '53'),('  7.1  总结', '53'),('  7.2  展望', '54'),
+    ('参考文献', '56'),('致谢', '58'),
+]
+for title, page in toc:
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(1)
+    p.paragraph_format.space_after = Pt(1)
+    p.paragraph_format.line_spacing = Pt(20)
+    dots = '·' * max(2, 60 - len(title) - len(page))
+    r = p.add_run(f'{title}{dots}{page}')
+    ef(r, east='宋体', west='Times New Roman', size=12)
+
+# 中文摘要单独分节，罗马页码从 I 开始
+start_section(
+    header_text='摘  要',
+    show_page_number=True,
+    page_number_format='upperRoman',
+    page_number_start=1,
+)
+
+# ══════════════════════════════════════════════════════════════
+# 摘 要
+# ══════════════════════════════════════════════════════════════
+h1('摘  要')
+
+body('随着高等教育规模持续扩大，高校选课系统在学期初选课高峰期面临严峻的高并发压力。传统单体架构难以应对大规模并发访问、课程资源动态分配以及个性化推荐等多元需求，系统稳定性、数据一致性和用户体验均存在明显不足。大量高校在选课开放后的前几分钟内即出现服务器响应超时甚至宕机的情况，严重影响学生的正常选课流程，暴露出传统系统架构在突发高并发场景下的脆弱性。')
+body('本文设计并实现了一套基于微服务架构的高校智能选课系统，技术选型上以Spring Boot 2.7和Spring Cloud Alibaba为核心，Nacos统一管理服务注册与配置，Spring Cloud Gateway对外提供路由入口，Sa-Token处理用户鉴权。选课并发控制方面，引入Redisson分布式锁保护库存扣减临界区，通过RabbitMQ将选课请求异步化从而平滑流量峰值，同时借助requestId幂等日志防止重复提交。课程推荐模块根据学生专业字段为课程打分——专业对口课程给90分，通用选修课程给50分，降序取前N条作为推荐列表，并附上推荐理由文字；时间冲突检测则在原课程时间窗口基础上两端各延展15分钟，模拟课间转场所需时间，再与已选课程逐一比对。前端选用React结合Ant Design Pro构建管理界面，数据层使用MyBatis-Plus简化了大量重复的CRUD操作。')
+body('笔者使用JMeter对选课接口进行了阶梯并发压测，结果显示在1000并发用户下平均响应时间约790ms，吞吐量约1218 TPS，错误率维持在2%以内，全程未出现一次课程超卖，说明Redisson分布式锁的并发保护策略是有效的，系统整体能够支撑高校大规模选课场景的实际需求。')
+
+p_kw = doc.add_paragraph()
+p_kw.paragraph_format.space_before = Pt(12)
+p_kw.paragraph_format.line_spacing = Pt(20)
+p_kw.paragraph_format.first_line_indent = Pt(0)
+rk1 = p_kw.add_run('关键词：')
+ef(rk1, east='黑体', size=12, bold=True)
+rk2 = p_kw.add_run('微服务；智能推荐；高并发；选课系统；冲突检测')
+ef(rk2, east='宋体', west='Times New Roman', size=12)
+
+start_section(
+    header_text='Abstract',
+    show_page_number=True,
+    page_number_format='upperRoman',
+    page_number_start=2,
+)
+
+# ── ABSTRACT ────────────────────────────────────────────────────
+h1('Abstract')
+
+def ebody(text):
+    """英文正文段落"""
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    p.paragraph_format.space_before = Pt(0); p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.line_spacing = Pt(20)
+    p.paragraph_format.first_line_indent = Pt(24)
+    r = p.add_run(text)
+    r.font.name = 'Times New Roman'; r.font.size = Pt(12)
+
+ebody('With the continuous expansion of higher education, the university course selection system faces severe high-concurrency pressure at the beginning of each semester. Traditional monolithic architectures are inadequate to handle large-scale concurrent access, dynamic course resource allocation, and personalized recommendation requirements, leading to obvious deficiencies in system stability, data consistency, and user experience.')
+ebody('This paper designs and implements an intelligent course selection system based on microservice architecture, solving three core problems: system stability and data consistency under high concurrency, personalized intelligent course recommendation, and automatic time-conflict detection and warning. The system uses Spring Boot 2.7 with Spring Cloud Alibaba, Nacos for service registration and configuration, Spring Cloud Gateway for unified routing and authentication, and Sa-Token for fine-grained permission management. Redisson distributed locks prevent overselling, RabbitMQ handles asynchronous peak shaving and notifications, and requestId idempotency ensures each request is processed only once. The recommendation module scores courses based on major match (90 points for matched courses, 50 for general electives). The conflict detection module uses a time-window algorithm with 15-minute buffer thresholds. The frontend is built with React and Ant Design Pro, and the backend data layer uses MyBatis-Plus.')
+ebody('Testing results show that under 1000 concurrent users, the system maintains an average response time of 790ms, a throughput of 1218 TPS, and an error rate below 2%, with zero overselling incidents, meeting large-scale course selection requirements.')
+
+p_kw2 = doc.add_paragraph()
+p_kw2.paragraph_format.space_before = Pt(12)
+p_kw2.paragraph_format.line_spacing = Pt(20)
+p_kw2.paragraph_format.first_line_indent = Pt(24)
+rk3 = p_kw2.add_run('Key Words: ')
+rk3.font.name = 'Times New Roman'; rk3.font.size = Pt(12); rk3.font.bold = True
+rk4 = p_kw2.add_run('Microservices; Intelligent Recommendation; High Concurrency; Course Selection; Conflict Detection')
+rk4.font.name = 'Times New Roman'; rk4.font.size = Pt(12)
+
+start_section(
+    header_text=BODY_HEADER,
+    show_page_number=True,
+    page_number_format='decimal',
+    page_number_start=1,
+)

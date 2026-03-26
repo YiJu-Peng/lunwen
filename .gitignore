@@ -33,8 +33,15 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Python cache
+__pycache__/
+*.pyc
+
 # Project backups
 *_backup_*/
+
+# External report exports
+PaperPass-*/
 
 # Generated screenshots and exported images
 screenshot_*.png
