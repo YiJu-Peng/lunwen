@@ -128,33 +128,8 @@ def write_ch4_7(doc, body, h1, h2, h3, insert_fig, tbl_add, code_block, start_se
 
     h2('5.1  智能课程推荐模块')
     h3('5.1.1  推荐算法设计与实现')
-    body('智能推荐的核心逻辑位于CourseRecommendationService类中。系统首先根据studentId查询学生专业信息，再通过OpenFeign调用选课微服务的分页接口获取按专业过滤的课程列表，并赋予90分；若专业匹配课程数量不足预设limit，则补充通用课程并赋予50分；最后对所有候选课程按得分降序排列，截取前limit条返回。主服务不单独维护课程数据副本，课程信息均由选课微服务实时提供，以保证数据一致性。核心代码如下。')
-    code_block([
-        'public List<CourseRecommendVO> recommendCoursesForStudent(',
-        '        Long studentId, Integer limit) {',
-        '    if (limit == null || limit <= 0) limit = 5;',
-        '    Student student = studentMapper.selectById(studentId);',
-        '    if (student == null) return Collections.emptyList();',
-        '',
-        '    List<CourseRecommendVO> result = new ArrayList<>();',
-        '    // Step1: 按专业查询匹配课程 (推荐分 90.0)',
-        '    if (student.getMajor() != null) {',
-        '        params.put("major", student.getMajor());',
-        '        PageParam<Curriculum> majorPage = enrollmentClient.page(params);',
-        '        for (Curriculum c : majorPage.getRecords()) {',
-        '            CourseRecommendVO vo = buildVO(c, student.getMajor());',
-        '            vo.setRecommendScore(90.0);',
-        '            result.add(vo);',
-        '        }',
-        '    }',
-        '    // Step2: 不足时以通用选修补充（推荐分 50.0）',
-        '    // Step3: 按推荐分降序，截取前 limit 条返回',
-        '    result.sort(Comparator.comparing(',
-        '        CourseRecommendVO::getRecommendScore).reversed());',
-        '    return result.subList(0, Math.min(result.size(), limit));',
-        '}',
-    ])
-    body('这段代码跨服务调用通过Feign完成，整个逻辑在Java端跑，不依赖外部模型服务。排序用的是Comparator.comparing结合reversed()，复杂度O(n log n)。高校场景下课程总量通常有限，这类基于规则的推荐方式能够在较低计算开销下给出稳定结果，也便于后续继续扩展更多推荐维度。')
+    body('智能推荐的核心逻辑位于推荐服务层中。系统首先根据studentId查询学生专业信息，再通过OpenFeign调用选课微服务的分页接口获取按专业过滤的课程列表，并赋予90分；若专业匹配课程数量不足预设limit，则补充通用课程并赋予50分；最后对所有候选课程按得分降序排列，截取前limit条返回。主服务不单独维护课程数据副本，课程信息均由选课微服务实时提供，以保证数据一致性。其实现过程可概括为以下三个步骤：首先校验studentId与limit参数，若学生不存在则直接返回空列表；其次依据学生专业查询高相关课程，不足部分再以通用选修课程补足；最后按照推荐分值完成排序与截取，并封装推荐理由后返回前端。')
+    body('推荐流程通过Feign完成跨服务调用，整体逻辑在Java服务侧执行，不依赖外部模型服务。排序阶段采用比较器完成降序处理，算法复杂度为O(n log n)。高校场景下课程总量通常有限，这类基于规则的推荐方式能够在较低计算开销下给出稳定结果，也便于后续继续扩展更多推荐维度。')
 
     h3('5.1.2  推荐课程页面')
     body('推荐页面采用卡片网格布局展示结果，每张卡片显示课程名称、授课时间、授课地点、适用专业及推荐理由，右下角设置"立即选课"按钮以便直接进入选课流程。页面加载完成后自动请求推荐接口，在loading阶段展示Ant Design的Spin组件，数据返回后渲染卡片列表。推荐课程页面如图5.1所示。')
@@ -162,46 +137,8 @@ def write_ch4_7(doc, body, h1, h2, h3, insert_fig, tbl_add, code_block, start_se
 
     h2('5.2  选课模块的实现')
     h3('5.2.1  高并发选课核心实现')
-    body('选课的核心控制器位于EnrollmentController类中。为保证高并发场景下的处理稳定性，系统主要依赖三道防线：requestId处理日志记录状态、Redisson分布式锁防止并发超卖、库存校验作为兜底机制。完整核心代码如下。')
-    code_block([
-        '@PostMapping("/select")',
-        'public String enrollStudentToCourse(Long studentId,',
-        '        Long curriculumId, Long requestId) {',
-        '    // 第一步：查询处理日志',
-        '    EnrollmentLog log = enrollmentLogService.getOne(',
-        '        new LambdaQueryWrapper<EnrollmentLog>()',
-        '            .eq(EnrollmentLog::getRequestId, requestId));',
-        '    if (log != null) {',
-        '        return log.getStatus()==1 ? "已经选课成功" : "系统繁忙,请稍后重试";',
-        '    }',
-        '    // 第二步：获取 Redisson 分布式锁',
-        '    RLock lock = redissonClient.getLock(',
-        '        "curriculum:_select_" + curriculumId);',
-        '    try {',
-        '        boolean locked = lock.tryLock(500, 5000, TimeUnit.MILLISECONDS);',
-        '        if (locked) {',
-        '            Curriculum c = curriculumService.getOne(...);',
-        '            if (c.getStock() <= 0) return "选课失败,该课程人数已满";',
-        '            if (enrollmentService.getOne(...) != null)',
-        '                return "选课失败，你已经选过该课程";',
-        '            EnrollmentLog newLog = new EnrollmentLog();',
-        '            newLog.setRequestId(requestId);',
-        '            newLog.setStudentId(studentId);',
-        '            newLog.setStatus(0);',
-        '            enrollmentLogService.save(newLog);',
-        '            return enrollmentService.enrollStudentToCourse(',
-        '                studentId, c, newLog);',
-        '        }',
-        '        return "系统繁忙，请稍后再试";',
-        '    } catch (InterruptedException e) {',
-        '        Thread.currentThread().interrupt();',
-        '        return "服务器出了点小差，请稍后再试";',
-        '    } finally {',
-        '        if (lock.isHeldByCurrentThread()) lock.unlock();',
-        '    }',
-        '}',
-    ])
-    body('tryLock(500, 5000, TimeUnit.MILLISECONDS)的参数含义：500ms为最长等待获取锁的时间，超时则放弃并返回"系统繁忙"；5000ms为锁的自动释放时间（租约），防止持锁服务崩溃后长期占锁。这里的requestId并不是前端直接传入的业务参数，而是异步消费者在调用选课微服务前生成的内部处理标识，并同步写入enrollment_log用于记录本次处理状态。主业务服务通过rabbitTemplate.convertAndSend()将EnrollmentDTO发送至RabbitMQ队列实现异步处理，前端在收到"处理中"响应后展示等待提示，选课结果在0至5分钟内通过消息中心通知学生。')
+    body('选课的核心控制逻辑位于选课微服务控制层。为保证高并发场景下的处理稳定性，系统主要依赖三道防线：requestId处理日志记录状态、Redisson分布式锁防止并发超卖、库存校验作为兜底机制。该控制逻辑可以概括为：首先依据requestId查询enrollment_log，判断当前请求是否已有处理记录；其次基于课程ID尝试获取分布式锁，并在持锁状态下完成库存校验与重复选课校验；最后在条件满足时写入处理日志、调用选课服务完成入库与扣减库存，并在释放锁后将结果返回给上层调用方。')
+    body('分布式锁的等待时间设置为500ms，锁租约时间设置为5000ms，前者用于限制抢锁等待时长，后者用于避免服务异常时长期占锁。这里的requestId并不是前端直接传入的业务参数，而是异步消费者在调用选课微服务前生成的内部处理标识，并同步写入enrollment_log用于记录本次处理状态。主业务服务通过消息发送组件将EnrollmentDTO投递至RabbitMQ队列实现异步处理，前端在收到"处理中"响应后展示等待提示，选课结果在0至5分钟内通过消息中心通知学生。')
 
     h3('5.2.2  选课操作页面')
     body('进入选课页面后，学生通过顶部搜索栏输入课程名称或教师姓名进行筛选，课程列表以分页表格形式展示（每页20条）。点击目标课程右侧"选择课程"按钮，系统弹出确认对话框，显示课程完整信息及冲突检测结果。学生确认后点击"确认选课"，界面立即反馈"正在处理中"状态提示。选课页面如图5.2所示，选课操作确认弹窗如图5.3所示。')
@@ -218,31 +155,7 @@ def write_ch4_7(doc, body, h1, h2, h3, insert_fig, tbl_add, code_block, start_se
 
     h2('5.3  课程冲突检测模块')
     h3('5.3.1  冲突检测算法实现')
-    body('冲突检测核心实现位于CourseConflictServiceImpl类的isTimeConflict方法。该方法通过时间区间扩展与三条件交叉判断，对课程时间重叠的主要场景进行预警。完整代码如下。')
-    code_block([
-        'private static final long CONFLICT_THRESHOLD_MINUTES = 15;',
-        '',
-        '@Override',
-        'public boolean isTimeConflict(Curriculum c1, Curriculum c2) {',
-        '    Date t1 = c1.getTeachingTime();',
-        '    Date t2 = c2.getTeachingTime();',
-        '    if (t1 == null || t2 == null) return false;',
-        '',
-        '    long duration = TimeUnit.HOURS.toMillis(2); // 课时2小时',
-        '    Date end1 = new Date(t1.getTime() + duration);',
-        '    Date end2 = new Date(t2.getTime() + duration);',
-        '',
-        '    // 对 c1 的区间两端各扩展 15 分钟缓冲',
-        '    long buf = TimeUnit.MINUTES.toMillis(CONFLICT_THRESHOLD_MINUTES);',
-        '    Date adjStart1 = new Date(t1.getTime() - buf);',
-        '    Date adjEnd1   = new Date(end1.getTime() + buf);',
-        '',
-        '    // 三条件覆盖所有时间重叠场景',
-        '    return (t2.after(adjStart1)   && t2.before(adjEnd1))',
-        '        || (end2.after(adjStart1) && end2.before(adjEnd1))',
-        '        || (t2.before(adjStart1)  && end2.after(adjEnd1));',
-        '}',
-    ])
+    body('冲突检测核心实现位于冲突检测服务的时间判断逻辑中。该逻辑通过时间区间扩展与三条件交叉判断，对课程时间重叠的主要场景进行预警。具体而言，系统首先读取两门课程的授课时间，并以2小时作为默认课时长度计算结束时间；随后在目标课程开始与结束时间两端各扩展15分钟，形成带缓冲的判断区间；最后分别从"开始时间落入区间""结束时间落入区间"以及"整体时间完全覆盖区间"三个角度判断是否构成冲突。')
     body('三个判断条件的物理含义：条件一覆盖"c2开始时间落在c1扩展区间内"的场景；条件二覆盖"c2结束时间落在c1扩展区间内"的场景；条件三覆盖"c2时间完全包含c1扩展区间"的极端场景。三者组合能够覆盖课程时间明显重叠的主要情况。15分钟缓冲阈值贴合高校实际情况，两节课之间若间隔不足15分钟，学生往往难以在不同教学楼间完成转场，因此将此类情况纳入冲突预警范围。')
     body('冲突原因描述根据时间差进行差异化生成：时间差为0时提示"两门课在同一时间开始"；时间差在15分钟以内时提示"两门课时间相隔仅N分钟，可能来不及转换教室"；超出缓冲但存在区间重叠时提示"课程时间重叠"或"时间接近，可能无法及时到达"。这种解释性提示有助于学生理解冲突性质，做出更稳妥的选课决策。')
 
@@ -267,64 +180,15 @@ def write_ch4_7(doc, body, h1, h2, h3, insert_fig, tbl_add, code_block, start_se
 
     h2('5.6  系统安全模块的实现')
     h3('5.6.1  Sa-Token 登录与 Token 管理')
-    body('安全模块的鉴权工作主要由Sa-Token完成。用户登录时，前端将账号密码POST至/api/user/login，后端首先进行非空校验，随后调用userService.userLogin()对输入密码执行加盐MD5处理，并与数据库中的密文进行比对；比对通过后调用StpUtil.login(userId)创建会话，会话信息结合Redis进行存储，并在返回前端时一并携带用户信息与角色标识，以支持前端完成权限展示控制。登录核心代码如下。')
-    code_block([
-        '@PostMapping("/login")',
-        'public BaseResponse<Map<String,Object>> userLogin(',
-        '        @RequestBody UserLoginRequest req, HttpServletRequest request) {',
-        '    if (req == null)',
-        '        throw new BusinessException(ErrorCode.PARAMS_ERROR);',
-        '    String account  = req.getUserAccount();',
-        '    String password = req.getUserPassword();',
-        '    if (StringUtils.isAnyBlank(account, password))',
-        '        throw new BusinessException(ErrorCode.PARAMS_ERROR);',
-        '    User user = userService.userLogin(account, password, request);',
-        '    LoginUserVO loginUserVO = userService.getLoginUserVO(user);',
-        '    SaTokenInfo tokenInfo  = StpUtil.getTokenInfo();',
-        '    Map<String,Object> result = new HashMap<>();',
-        '    result.put("user",       loginUserVO);',
-        '    result.put("tokenName",  tokenInfo.getTokenName());',
-        '    result.put("tokenValue", tokenInfo.getTokenValue());',
-        '    result.put("role",       user.getUserRole());',
-        '    return ResultUtils.success(result);',
-        '}',
-    ])
+    body('安全模块的鉴权工作主要由Sa-Token完成。用户登录时，前端将账号密码POST至/api/user/login，后端首先进行非空校验，随后调用userService.userLogin()对输入密码执行加盐MD5处理，并与数据库中的密文进行比对；比对通过后调用StpUtil.login(userId)创建会话，会话信息结合Redis进行存储，并在返回前端时一并携带用户信息与角色标识，以支持前端完成权限展示控制。登录接口的处理流程可以概括为：接收并校验登录请求参数、调用用户服务完成账号密码校验、生成Sa-Token会话、封装用户信息与Token信息后统一返回。')
 
     h3('5.6.2  网关层鉴权过滤器')
-    body('Spring Cloud Gateway通过自定义SaReactorFilter拦截所有入站请求，对登录、注册以及当前预留的验证码路径直接放行，其余接口调用StpUtil.checkLogin()进行Token有效性验证。Sa-Token从HTTP请求头中提取Token值，到Redis中查询对应会话信息，若Token不存在或已过期则返回错误信息。鉴权过滤器同时处理CORS预检请求（OPTIONS方法），通过setHeader注入跨域响应头后直接放行，避免浏览器跨域限制影响前端正常请求。')
-    code_block([
-        '@Bean',
-        'public SaReactorFilter saReactorFilter() {',
-        '    return new SaReactorFilter()',
-        '        .addInclude("/**")',
-        '        .addExclude(',
-        '            "/favicon.ico",',
-        '            "/api/user/login",',
-        '            "/api/user/register",',
-        '            "/api/user/captcha"',
-        '        )',
-        '        .setAuth(obj -> {',
-        '            SaRouter.match("/**", StpUtil::checkLogin);',
-        '        })',
-        '        .setBeforeAuth(obj -> {',
-        '            SaHolder.getResponse()',
-        '                .setHeader("Access-Control-Allow-Origin",',
-        '                    "http://localhost:8000")',
-        '                .setHeader("Access-Control-Allow-Methods","*")',
-        '                .setHeader("Access-Control-Allow-Headers",',
-        '                    "authorization, content-type")',
-        '                .setHeader("Access-Control-Allow-Credentials",',
-        '                    "true")',
-        '                .setHeader("Access-Control-Max-Age","3600");',
-        '            SaRouter.match(SaHttpMethod.OPTIONS).free(r->{}).back();',
-        '        });',
-        '}',
-    ])
+    body('Spring Cloud Gateway通过自定义鉴权过滤器拦截所有入站请求，对登录、注册以及当前预留的验证码路径直接放行，其余接口统一执行Token有效性验证。Sa-Token从HTTP请求头中提取Token值，到Redis中查询对应会话信息，若Token不存在或已过期则返回错误信息。鉴权过滤器同时处理CORS预检请求（OPTIONS方法），通过补充跨域响应头后直接放行，避免浏览器跨域限制影响前端正常请求。其过滤规则主要包括三部分：其一，对全部业务路径进行统一接入控制，并排除favicon、登录、注册和验证码等白名单接口；其二，在鉴权阶段统一执行登录态校验；其三，在前置处理阶段补充跨域相关响应头，并对OPTIONS预检请求直接放行。')
     body('当前配置中Token默认有效期为30天，active-timeout设置为-1，不启用无操作冻结机制，整体更偏向于保证开发与演示阶段的登录连续性。Token结合Redis存储后，任意一个服务节点都可以独立完成验证，不依赖某台固定机器。通过网关鉴权后，用户即可访问受保护的课程表页面，如图5.11所示。')
     insert_fig('fig_protected_schedule_page.png','图 5.11  我的课程表页面',14)
 
     h2('5.7  本章小结')
-    body('本章以六大功能模块为核心，通过关键代码解析与系统界面截图相结合的方式，系统性呈现了智能推荐、高并发选课防护、时间冲突检测、系统管理、消息通知和安全鉴权模块的实现细节。智能推荐模块通过专业匹配评分实现了轻量级的个性化推荐；高并发选课模块通过Redisson锁、处理日志与RabbitMQ队列协同控制并发压力；冲突检测模块基于时间窗口扩展算法对主要重叠场景进行预警；安全模块实现了统一登录态校验与会话管理。各模块协同工作共同支撑了系统在高并发、高可靠场景下的运行。')
+    body('本章以六大功能模块为核心，通过实现逻辑说明与系统界面截图相结合的方式，系统性呈现了智能推荐、高并发选课防护、时间冲突检测、系统管理、消息通知和安全鉴权模块的实现细节。智能推荐模块通过专业匹配评分实现了轻量级的个性化推荐；高并发选课模块通过Redisson锁、处理日志与RabbitMQ队列协同控制并发压力；冲突检测模块基于时间窗口扩展算法对主要重叠场景进行预警；安全模块实现了统一登录态校验与会话管理。各模块协同工作共同支撑了系统在高并发、高可靠场景下的运行。')
 
     doc.add_page_break()
 

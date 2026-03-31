@@ -35,7 +35,7 @@ def write_ch1_3(doc, body, h1, h2, h3, insert_fig, tbl_add, code_block):
     body('第二章系统开发相关技术分析，深入介绍与系统开发相关的核心技术，包括Spring Cloud Alibaba微服务框架、Nacos服务治理、Redis缓存与Redisson分布式锁、RabbitMQ消息队列、Sa-Token鉴权、MyBatis-Plus数据访问以及React前端技术栈，并详细说明系统开发环境配置。')
     body('第三章可行性与需求分析，从技术可行性、用户操作可行性和开发成本可行性三个维度论证系统建设的可行性，采用用例驱动方法梳理三类用户的功能需求，形成完整的需求规格说明。')
     body('第四章系统概要设计，阐述系统的整体四层架构设计，详细规划各功能模块的设计方案，完成数据库概念设计（E-R图）和逻辑设计（七张核心表结构定义），为系统实现提供完整蓝图。')
-    body('第五章系统详细设计与实现，以模块为单元通过核心代码解析与界面截图相结合的方式，系统性呈现六大模块的实现细节，验证各模块技术方案的可行性与功能完整性。')
+    body('第五章系统详细设计与实现，以模块为单元通过实现流程说明与界面截图相结合的方式，系统性呈现六大模块的实现细节，验证各模块技术方案的可行性与功能完整性。')
     body('第六章系统测试，设计覆盖六大功能模块的测试用例，通过功能测试验证业务逻辑正确性，借助JMeter阶梯式性能压力测试评估系统高并发处理能力。')
     body('第七章总结与展望，总结微服务架构在智能选课系统中的实践效果，并就推荐算法深化、弹性伸缩增强、移动端开发等方面提出未来演进方向。')
 
@@ -59,16 +59,16 @@ def write_ch1_3(doc, body, h1, h2, h3, insert_fig, tbl_add, code_block):
 
     h3('2.1.3  Redis 缓存与 Redisson 分布式锁')
     body('Redis（Remote Dictionary Server）是一款基于内存的高性能键值存储系统，支持String、Hash、List、Set、Sorted Set等丰富数据结构，以亚毫秒级响应延迟著称。在本系统中，Redis主要承担两项职责：一是作为Sa-Token与相关会话组件的后端存储，实现多服务实例间的登录态共享；二是作为Redisson分布式锁的底层协调介质，为选课临界区并发控制提供支撑[7]。')
-    body('Redisson是构建在Redis之上的Java分布式对象与服务框架，提供了RLock（分布式锁）、RSemaphore等高级并发原语。本系统在选课核心流程中使用RLock实现分布式锁，锁定键格式为"curriculum:_select_{curriculumId}"，通过tryLock(500ms等待, 5000ms租约)机制确保同一课程在任意时刻只有一个选课请求进入临界区执行库存扣减，从而降低并发超卖风险。')
+    body('Redisson是构建在Redis之上的Java分布式对象与服务框架，提供了较为丰富的并发控制能力。本系统在选课核心流程中利用其分布式锁能力对课程维度的关键操作进行串行化控制，并设置锁等待时间与租约时间，以确保同一课程在同一时刻仅有一个请求进入库存扣减临界区，从而降低并发超卖风险。')
 
     h3('2.1.4  RabbitMQ 消息队列与异步处理')
     body('RabbitMQ是基于AMQP协议的开源消息代理，以可靠投递、灵活的交换机路由和完善的管理界面而广泛应用于分布式系统的异步解耦场景[8]。本系统引入RabbitMQ实现双重目标：其一，流量削峰，主业务服务将选课请求封装为EnrollmentDTO消息发送至队列后立即返回"处理中"响应，选课微服务从队列中按序消费并执行实际的选课逻辑，将峰值并发压力从数据库层面平移至消息队列层面；其二，异步通知，选课结果（成功/失败及原因）通过通知队列异步发送至站内消息中心，实现了选课处理与通知推送的彻底解耦，确保通知的可靠投递。')
 
     h3('2.1.5  Sa-Token 统一鉴权框架')
-    body('Sa-Token是一个轻量级Java权限认证框架，以简洁的API设计和开箱即用的功能特性著称，可通过数行代码完成登录认证、权限校验等操作[9]。本系统通过Sa-Token实现统一鉴权：用户登录后由StpUtil.login(userId)生成会话Token并结合Redis进行存储；网关层通过自定义SaReactorFilter拦截请求，对登录、注册等白名单接口放行，其余接口调用StpUtil.checkLogin()验证Token有效性。当前配置中Token有效期为30天，active-timeout为-1，整体策略更偏向于保证开发和演示阶段的登录连续性。')
+    body('Sa-Token是一个轻量级Java权限认证框架，以简洁的API设计和开箱即用的功能特性著称，可较为便捷地完成登录认证与权限校验[9]。本系统通过Sa-Token实现统一鉴权：用户登录成功后由框架生成会话Token并结合Redis进行存储；网关层通过自定义鉴权过滤器拦截请求，对登录、注册等白名单接口放行，其余接口统一执行登录态校验。当前配置中Token有效期为30天，active-timeout为-1，整体策略更偏向于保证开发和演示阶段的登录连续性。')
 
     h3('2.1.6  MyBatis-Plus 数据访问框架')
-    body('MyBatis-Plus是在MyBatis基础上进行功能增强的ORM框架，提供了通用Mapper（BaseMapper<T>）、通用Service（IService<T>）、条件构造器（LambdaQueryWrapper）等特性，将单表CRUD操作的样板代码量减少80%以上。本系统全面采用MyBatis-Plus进行数据访问，通过@TableLogic注解结合is_delete字段实现逻辑删除，@TableField(fill=FieldFill.INSERT)注解自动填充create_time与update_time字段，规范化数据操作行为，大幅提升开发效率。')
+    body('MyBatis-Plus是在MyBatis基础上进行功能增强的ORM框架，提供了通用Mapper、通用Service、条件构造器、逻辑删除与自动填充等特性，可显著减少单表CRUD操作中的样板代码。本系统全面采用MyBatis-Plus进行数据访问，通过逻辑删除机制管理is_delete字段，并利用自动填充能力维护create_time与update_time字段，从而规范化数据操作行为并提升开发效率。')
 
     h3('2.1.7  React 与 Ant Design Pro 前端框架')
     body('React是由Meta开发的声明式、组件化JavaScript视图库，通过虚拟DOM差分算法实现高效的UI局部更新，结合Hooks特性实现函数式组件状态管理，是当前最主流的前端框架之一[10]。Ant Design Pro是基于Ant Design企业级设计体系的前端应用框架，提供了布局方案、权限管理等开箱即用功能，内置ProTable（高级表格）、ProForm（高级表单）等业务组件，可大幅缩短管理后台的开发周期。本系统前端采用React + TypeScript + Ant Design Pro技术栈，通过UmiJS框架管理路由，使用Axios封装HTTP请求，系统界面自适应PC与移动端多种分辨率。')
