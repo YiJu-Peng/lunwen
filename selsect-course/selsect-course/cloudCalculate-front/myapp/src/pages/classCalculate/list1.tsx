@@ -4,7 +4,6 @@ import React, { useEffect, useState} from 'react';
 import ReactECharts from 'echarts-for-react';
 import {Card, Col, Row} from 'antd';
 import {list1UsingGet} from "@/services/ant-design-pro/calculateController";
-import {c} from "@umijs/utils/compiled/tar";
 
 
 /**
@@ -30,8 +29,8 @@ const InterfaceAnalysis: React.FC = () => {
   // 映射：{ value: 1048, name: 'Search Engine' },
   const chartData = data.map(item => {
     return {
-      value: parseInt(item.value),
-      name: item.name,
+      value: Number(item.value ?? 0),
+      name: item.name ?? '未命名',
     }
   })
   //
@@ -75,7 +74,7 @@ const InterfaceAnalysis: React.FC = () => {
         labelLine: {
           show: false
         },
-        data: data
+        data: chartData
       }
     ]
   };

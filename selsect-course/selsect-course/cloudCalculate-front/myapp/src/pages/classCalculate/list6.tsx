@@ -49,7 +49,7 @@ const InterfaceAnalysis: React.FC = () => {
   const option = {
     tooltip: {
       trigger: 'axis',
-      formatter: function (params) {
+      formatter: function (params: any[]) {
         let res ='班级:'+params[0].name + '<br>';
         res += '挂科率' + '：' + params[0].value + '<br>';
         return res;

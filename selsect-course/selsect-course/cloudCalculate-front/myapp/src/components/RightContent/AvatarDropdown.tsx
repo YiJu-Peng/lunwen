@@ -15,7 +15,7 @@ export type GlobalHeaderRightProps = {
 
 export const AvatarName = () => {
   const {initialState} = useModel('@@initialState');
-  const currentUser = initialState.currentUser || {};
+  const currentUser: Partial<API.LoginUserVO> = initialState?.currentUser || {};
   return <span className="anticon">{currentUser?.userName}</span>;
 };
 
@@ -48,12 +48,9 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({menu, children
     const redirect = urlParams.get('redirect');
     // Note: There may be security issues, please note
     if (window.location.pathname !== '/user/login' && !redirect) {
-      history.replace({
-        pathname: '/user/login',
-        search: stringify({
-          redirect: pathname + search,
-        }),
-      });
+      history.replace(`/user/login?${stringify({
+        redirect: pathname + search,
+      })}`);
     }
   };
   const {styles} = useStyles();
@@ -65,7 +62,7 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({menu, children
       const {key} = event;
       if (key === 'logout') {
         flushSync(() => {
-          setInitialState((s) => ({...s, currentUser: undefined}));
+          setInitialState((s: any) => ({...s, currentUser: undefined}));
         });
         loginOut();
         return;
@@ -119,7 +116,7 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({menu, children
       key: 'userMessage',
       icon: <LogoutOutlined/>,
       label:
-        <Badge count={currentUser.unReadMessage} showZero={true}>
+        <Badge count={currentUser.unReadMessage ?? 0} showZero={true}>
           未读消息
         </Badge>
     },

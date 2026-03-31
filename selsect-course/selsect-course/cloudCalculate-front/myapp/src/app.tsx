@@ -2,7 +2,6 @@ import {AvatarDropdown, AvatarName, Footer, Question} from '@/components';
 import { LinkOutlined } from '@ant-design/icons';
 import {Settings as LayoutSettings} from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
-import type { RunTimeLayoutConfig } from '@umijs/max';
 import { Link, history } from '@umijs/max';
 import defaultSettings from '../config/defaultSettings';
 import React, {useState} from "react";
@@ -13,9 +12,38 @@ import { ConfigProvider } from 'antd';
 import { StyleProvider } from 'antd-style';
 import themeConfig, { generateDynamicPalette, extractColorFromWallpaper, adjustColorsByEnvironment, generateDarkTheme } from './theme.config';
 import { useMotionSetup, TransitionPageContainer } from './components/MotionComponents';
+import { getPaperPreviewParam, isPaperPreview } from '@/utils/paperPreview';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
+const getPaperPreviewUser = (): API.LoginUserVO => {
+  const previewRole = getPaperPreviewParam('role');
+
+  if (previewRole === 'admin') {
+    return {
+      id: 900001,
+      userName: '演示管理员',
+      userRole: 'admin',
+      createTime: '2026-03-30 09:00:00',
+    };
+  }
+
+  if (previewRole === 'teacher') {
+    return {
+      id: 700101,
+      userName: '张教授',
+      userRole: 'teacher',
+      createTime: '2026-03-30 09:00:00',
+    };
+  }
+
+  return {
+    id: 2024001,
+    userName: '演示学生',
+    userRole: 'student',
+    createTime: '2026-03-30 09:00:00',
+  };
+};
 
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
@@ -39,8 +67,14 @@ export async function getInitialState(): Promise<{
     return undefined;
   };
   // 如果不是登录页面，执行
-  const { location } = history;
-  if (location.pathname !== loginPath) {
+  if (window.location.pathname !== loginPath) {
+    if (isPaperPreview()) {
+      return {
+        fetchUserInfo,
+        currentUser: getPaperPreviewUser(),
+        settings: defaultSettings as Partial<LayoutSettings>,
+      };
+    }
     const currentUser = await fetchUserInfo();
     return {
       fetchUserInfo,
@@ -55,24 +89,24 @@ export async function getInitialState(): Promise<{
 }
 
 
-export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
+export const layout = ({ initialState, setInitialState }: any) => {
   return {
     actionsRender: () => [<Question key="doc" />],
     avatarProps: {
       src: initialState?.currentUser?.userAvatar || "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png",
       title: <AvatarName />,
-      render: (_, avatarChildren) => {
+      render: (_: unknown, avatarChildren: React.ReactNode) => {
         return <AvatarDropdown>{avatarChildren}</AvatarDropdown>;
       },
     },
     waterMarkProps: {
-      content: initialState?.currentUser?.userName,
+      content: '',
+      fontColor: 'rgba(24, 144, 255, 0.0)',
     },
     footerRender: () => <Footer />,
     onPageChange: () => {
-      const { location } = history;
       // 如果没有登录，重定向到 login
-      if (!initialState?.currentUser && location.pathname !== loginPath) {
+      if (!initialState?.currentUser && !isPaperPreview() && window.location.pathname !== loginPath) {
         history.push(loginPath);
       }
     },
@@ -107,7 +141,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     menuHeaderRender: undefined,
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
-    menuItemRender: (menuItemProps, defaultDom) => {
+    menuItemRender: (menuItemProps: any, defaultDom: React.ReactNode) => {
       if (menuItemProps.isUrl || !menuItemProps.path) {
         return defaultDom;
       }
@@ -124,7 +158,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         </Link>
       );
     },
-    childrenRender: (children) => {
+    childrenRender: (children: React.ReactNode) => {
       // if (initialState?.loading) return <PageLoading />;
       return (
         <>
@@ -182,7 +216,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
                   enableDarkTheme
                   settings={initialState.settings}
                   onSettingChange={(settings1) => {
-                      setInitialState((preInitialState) => ({
+                      setInitialState((preInitialState: any) => ({
                         ...preInitialState,
                         settings: settings1,
                       }));
@@ -233,9 +267,10 @@ export function rootContainer(container: React.ReactNode) {
   const AppWrapper = () => {
     // 在组件内部调用hooks
     useMotionSetup();
+    const paperPreview = isPaperPreview();
     
     // 获取当前主题模式（明亮/暗黑）
-    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const prefersDarkMode = paperPreview ? false : window.matchMedia('(prefers-color-scheme: dark)').matches;
     
     // 获取当前时间
     const hour = new Date().getHours();
@@ -282,21 +317,28 @@ export function rootContainer(container: React.ReactNode) {
         document.body.classList.remove('dark-mode');
       }
       
-      // 监听系统主题变化
       const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handleThemeChange = (e: MediaQueryListEvent) => {
+        if (paperPreview) {
+          document.body.classList.remove('dark-mode');
+          return;
+        }
         if (e.matches) {
           document.body.classList.add('dark-mode');
         } else {
           document.body.classList.remove('dark-mode');
         }
       };
-      
-      darkModeMediaQuery.addEventListener('change', handleThemeChange);
+
+      if (!paperPreview) {
+        darkModeMediaQuery.addEventListener('change', handleThemeChange);
+      }
       return () => {
-        darkModeMediaQuery.removeEventListener('change', handleThemeChange);
+        if (!paperPreview) {
+          darkModeMediaQuery.removeEventListener('change', handleThemeChange);
+        }
       };
-    }, [prefersDarkMode, baseColor]);
+    }, [prefersDarkMode, baseColor, paperPreview]);
     
     return (
       <StyleProvider>

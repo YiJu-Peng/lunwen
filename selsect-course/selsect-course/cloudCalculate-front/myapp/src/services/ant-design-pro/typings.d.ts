@@ -15,9 +15,9 @@ declare namespace API {
     userId?: number;
   };
 
-  type BaseResponse = {
+  type BaseResponse<T = Record<string, any>> = {
     code?: number;
-    data?: Record<string, any>;
+    data?: T;
     message?: string;
   };
 
@@ -345,6 +345,7 @@ declare namespace API {
     isCheck?: number;
     location?: string;
     pageSize?: number;
+    size?: number;
     remarks?: string;
     sortField?: string;
     sortOrder?: string;
@@ -869,6 +870,11 @@ declare namespace API {
     userProfile?: string;
     userRole: string;
     createTime: string;
+    email?: string;
+    gender?: number;
+    unReadMessage?: number;
+    userAccount?: string;
+    userDescription?: string;
   };
 
   // 登录用户响应类型

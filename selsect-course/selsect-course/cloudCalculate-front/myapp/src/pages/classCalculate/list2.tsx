@@ -36,7 +36,8 @@ const InterfaceAnalysis: React.FC = () => {
 
   // 映射：{ value: 1048, name: 'Search Engine' },
   const chartData = data.map(item => {
-    const truncatedName = item.name.length > 8 ? `${item.name.slice(0, 8)}...` : item.name;
+    const name = item.name ?? '未命名';
+    const truncatedName = name.length > 8 ? `${name.slice(0, 8)}...` : name;
     return truncatedName;
   });
   //

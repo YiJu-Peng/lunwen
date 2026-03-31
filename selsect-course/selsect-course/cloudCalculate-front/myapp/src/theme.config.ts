@@ -162,11 +162,11 @@ export const adjustColorsByEnvironment = (
   const { saturation, lightness } = adjustments[timeOfDay];
   
   // 应用调整
-  Object.keys(adjustedPalette).forEach(key => {
-    if (key !== 'museum' && Array.isArray(adjustedPalette[key as keyof ColorPalette])) {
-      const colorArray = adjustedPalette[key as keyof ColorPalette] as string[];
+  (Object.keys(adjustedPalette) as Array<keyof ColorPalette>).forEach((key) => {
+    if (key !== 'museum' && Array.isArray(adjustedPalette[key])) {
+      const colorArray = adjustedPalette[key] as string[];
       if (colorArray) {
-        adjustedPalette[key as keyof ColorPalette] = colorArray.map((color: string) => {
+        (adjustedPalette as Record<string, any>)[key] = colorArray.map((color: string) => {
           return adjustColorSaturationAndLightness(color, saturation, lightness);
         });
       }

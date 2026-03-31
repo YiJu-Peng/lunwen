@@ -8,6 +8,7 @@ import { checkMyConflict } from '@/services/ant-design-pro/conflictController';
 import { ClockCircleOutlined, WarningOutlined, BookOutlined, UserOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import { MotionCard, MotionButton, TactileButton, FadeInText } from '@/components/MotionComponents';
 import MaterialToast from '@/components/MaterialToast';
+import { getPaperPreviewParam, isPaperPreview } from '@/utils/paperPreview';
 import './CourseSelectionPage.less';
 
 const { Text, Paragraph, Title } = Typography;
@@ -24,6 +25,78 @@ interface ExtendedCurriculum extends API.Curriculum {
   allStock?: number;
 }
 
+const demoCourses: ExtendedCurriculum[] = [
+  {
+    id: 1001,
+    subjectId: 210301,
+    subjectName: '分布式系统架构',
+    teacherName: '李佳航',
+    teachingTimeString: '周一 08:00-09:40',
+    teachingTime: new Date('2026-04-06T08:00:00'),
+    location: '软件楼 A302',
+    stock: 18,
+    allStock: 40,
+  },
+  {
+    id: 1002,
+    subjectId: 210317,
+    subjectName: '云平台运维实践',
+    teacherName: '张倩',
+    teachingTimeString: '周二 14:00-15:40',
+    teachingTime: new Date('2026-04-07T14:00:00'),
+    location: '云计算实验室 B201',
+    stock: 6,
+    allStock: 35,
+  },
+  {
+    id: 1003,
+    subjectId: 210326,
+    subjectName: '服务治理与性能优化',
+    teacherName: '刘海峰',
+    teachingTimeString: '周三 10:00-11:40',
+    teachingTime: new Date('2026-04-08T10:00:00'),
+    location: '信息楼 C403',
+    stock: 0,
+    allStock: 30,
+  },
+  {
+    id: 1004,
+    subjectId: 210330,
+    subjectName: '软件测试与质量保障',
+    teacherName: '王璐',
+    teachingTimeString: '周五 16:00-17:40',
+    teachingTime: new Date('2026-04-10T16:00:00'),
+    location: '软件楼 A410',
+    stock: 12,
+    allStock: 28,
+  },
+];
+
+const demoConflictResult: API.ConflictCheckResult = {
+  hasConflict: true,
+  conflictDescription: '待选课程与已选课程在周一上午存在时间重叠，请确认是否继续提交。',
+  conflictDetails: '待选课程与已选课程存在时间冲突。',
+  targetCourse: {
+    id: 1001,
+    subjectId: 210301,
+    location: '软件楼 A302',
+    teachingTime: new Date('2026-04-06T08:00:00'),
+  },
+  conflictCourses: [
+    {
+      curriculumId: 9001,
+      subjectId: 210215,
+      subjectName: '操作系统设计',
+      teachingTime: '2026-04-06 08:30:00',
+      teachingTimeString: '周一 08:30-10:10',
+      location: '信息楼 B205',
+      teacherId: 3012,
+      teacherName: '陈海川',
+      conflictReason: '与待选课程上课时间重叠 70 分钟',
+    },
+  ],
+};
+
 const CourseSelectionPage: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isConflictVisible, setIsConflictVisible] = useState(false);
@@ -35,15 +108,46 @@ const CourseSelectionPage: React.FC = () => {
   const [totalCourses, setTotalCourses] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const paperPreview = isPaperPreview();
+  const previewModal = getPaperPreviewParam('modal');
 
   const {initialState} = useModel('@@initialState');
   const currentUser = initialState?.currentUser;
 
+  useEffect(() => {
+    if (!paperPreview) {
+      return;
+    }
+    const modalCourse = previewModal === 'conflict' ? demoCourses[0] : demoCourses[1];
+    if (!previewModal) {
+      return;
+    }
+    setSelectedCourse(modalCourse);
+    if (previewModal === 'confirm') {
+      setConflictResult(null);
+      setIsModalVisible(true);
+      setIsConflictVisible(false);
+    } else if (previewModal === 'conflict') {
+      setConflictResult(demoConflictResult);
+      setIsConflictVisible(true);
+      setIsModalVisible(false);
+    }
+  }, [paperPreview, previewModal]);
+
   // 点击选课后，先做冲突检查
   const handleSelectCourse = async (course: any) => {
-    // 先校验是否和已选课程冲突
-    await checkCourseConflict(course);
     setSelectedCourse(course);
+    if (paperPreview) {
+      if (course.id === demoConflictResult.targetCourse.id) {
+        setConflictResult(demoConflictResult);
+        setIsConflictVisible(true);
+      } else {
+        setConflictResult(null);
+        setIsModalVisible(true);
+      }
+      return;
+    }
+    await checkCourseConflict(course);
   };
 
   // 选课前的冲突检查
@@ -56,17 +160,13 @@ const CourseSelectionPage: React.FC = () => {
         curriculumId
       });
 
-      if (res.code === 200) {
-        // setConflictResult(res.data);
-        // setSelectedCourse(course);
-        //
-        // // 根据冲突结果决定弹窗
-        // if (res.data.hasConflict) {
-        //   setIsConflictVisible(true); // 显示冲突提示
-        // } else {
-        //   setIsModalVisible(true); // 显示选课确认
-        // }
-        setIsModalVisible(true);
+      if (res.code === 200 && res.data) {
+        setConflictResult(res.data);
+        if (res.data.hasConflict) {
+          setIsConflictVisible(true);
+        } else {
+          setIsModalVisible(true);
+        }
       } else {
         MaterialToast.error('检查课程冲突失败');
       }
@@ -131,12 +231,23 @@ const CourseSelectionPage: React.FC = () => {
     filter?: Record<string, React.ReactText[] | null>,
   ) => {
     try {
+      if (paperPreview) {
+        setCoursesData(demoCourses);
+        setTotalCourses(demoCourses.length);
+        return {
+          data: demoCourses,
+          total: demoCourses.length,
+          success: true,
+          pageSize: params.pageSize || 10,
+          current: params.current || 1,
+        };
+      }
       console.log('Pagination params:', params);
 
       const res: any = await pageCurriculumsUsingGet({
         ...params,
         current: params.current || 1,
-        size: params.pageSize || 10,
+        pageSize: params.pageSize || 10,
       });
 
       if (res?.records) {
@@ -335,7 +446,7 @@ const CourseSelectionPage: React.FC = () => {
             <Title level={2}>课程选择</Title>
           </FadeInText>
         ),
-        subTitle: '浏览并选择您本学期的课程',
+        subTitle: '浏览开放课程并完成在线选课',
         ghost: true,
       }}
     >
@@ -357,7 +468,7 @@ const CourseSelectionPage: React.FC = () => {
           headerTitle={
             <Space>
               <BookOutlined />
-              <span>可选课程列表</span>
+              <span>本学期开放课程</span>
             </Space>
           }
           actionRef={actionRef}
@@ -377,42 +488,42 @@ const CourseSelectionPage: React.FC = () => {
         title={
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <WarningOutlined style={{ color: '#faad14', marginRight: 8 }} />
-            <span>课程时间冲突警告</span>
+            <span>检测到时间冲突风险</span>
           </div>
         }
         open={isConflictVisible}
         onCancel={handleCancel}
         footer={[
           <Button key="back" onClick={handleCancel}>
-            取消选课
+            暂不选择
           </Button>,
           <TactileButton key="submit" type="primary" danger onClick={handleForceSelect} intensity="strong">
-            仍然选择
+            忽略风险并继续
           </TactileButton>,
         ]}
         width={600}
         className="conflict-modal"
       >
         <Alert
-          message={conflictResult?.conflictDescription || "检测到课程时间冲突"}
+          message={conflictResult?.conflictDescription || "检测到课程时间存在冲突风险"}
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
         />
         <Paragraph>
-          选择此课程可能会导致上课时间冲突，请确认是否继续:
+          如果继续提交，系统仍会按照您的选择发起选课申请，请确认是否继续：
         </Paragraph>
         {renderConflictDetails()}
       </Modal>
 
       {/* 选课确认弹窗 */}
       <Modal
-        title="确认选课"
+        title="提交选课确认"
         open={isModalVisible}
         onCancel={handleCancel}
         footer={[
           <Button key="back" onClick={handleCancel}>
-            取消
+            返回
           </Button>,
           <TactileButton
             key="submit"
@@ -421,7 +532,7 @@ const CourseSelectionPage: React.FC = () => {
             loading={loading}
             intensity="medium"
           >
-            确认选课
+            提交选课
           </TactileButton>,
         ]}
         className="confirm-modal"
@@ -452,7 +563,7 @@ const CourseSelectionPage: React.FC = () => {
           </Space>
           <Divider />
           <Paragraph>
-            请确认您想要选择上述课程。一旦确认，该课程将被添加到您的课程表中。
+            请确认以上课程信息。提交后系统将执行库存校验，并在处理完成后将结果同步到消息中心。
           </Paragraph>
         </div>
       </Modal>

@@ -168,7 +168,7 @@ const Login: React.FC = () => {
     const userInfo = await initialState?.fetchUserInfo?.();
     if (userInfo) {
       flushSync(() => {
-        setInitialState((s) => ({
+        setInitialState((s: any) => ({
           ...s,
           currentUser: userInfo,
         }) as any);
@@ -190,7 +190,7 @@ const Login: React.FC = () => {
         
         // 设置用户信息到initialState
         flushSync(() => {
-          setInitialState((s) => ({
+          setInitialState((s: any) => ({
             ...s,
             currentUser: msg.data.user,
           }) as any);
@@ -241,8 +241,8 @@ const Login: React.FC = () => {
         <div className={styles.card}>
           <div className={styles.header}>
             <img src="/logo.png" alt="Logo" className={styles.logo} />
-            <Title level={2} className={styles.title}>工学院选课系统</Title>
-            <Text type="secondary" className={styles.subTitle}>欢迎回来，请登录您的账号</Text>
+            <Title level={2} className={styles.title}>高校智能选课系统</Title>
+            <Text type="secondary" className={styles.subTitle}>使用学号、工号或手机号登录统一选课平台</Text>
           </div>
           
           <Tabs
@@ -257,7 +257,7 @@ const Login: React.FC = () => {
               },
               {
                 key: 'mobile',
-                label: '手机号登录',
+                label: '手机号快捷登录',
               },
             ]}
           />
@@ -400,8 +400,8 @@ const Login: React.FC = () => {
           </div>
           
           <div className={styles.footer}>
-            <div>还没有账号？<a>立即注册</a></div>
-            <div style={{ marginTop: '8px' }}>Powerd By DawnCclin 个人博客网：dawn-lin.xyz</div>
+            <div>账号由系统管理员统一分配</div>
+            <div style={{ marginTop: '8px' }}>适用于学生、教师与管理员统一登录</div>
           </div>
         </div>
       </div>

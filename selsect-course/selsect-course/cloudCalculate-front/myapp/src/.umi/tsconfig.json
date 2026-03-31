@@ -27,7 +27,7 @@
         "src/.umi/*"
       ],
       "@umijs/max": [
-        "/workspace/node_modules/umi"
+        "/home/pengyiju/code/lunwen/lunwen/selsect-course/selsect-course/cloudCalculate-front/myapp/node_modules/umi"
       ],
       "@umijs/max/typings": [
         "src/.umi/typings"

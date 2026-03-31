@@ -4,10 +4,18 @@ import { UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons
 import { useModel } from '@@/exports';
 
 const { Title, Text } = Typography;
+type UserCenterUser = Partial<API.LoginUserVO> & {
+  email?: string;
+  gender?: number;
+  userAccount?: string;
+  userDescription?: string;
+};
 
 const UserCenter: React.FC = () => {
   const { initialState } = useModel('@@initialState');
-  const currentUser = initialState.currentUser || {};
+  const currentUser: UserCenterUser = initialState?.currentUser || {};
+  const registerDate = currentUser.createTime ? currentUser.createTime.toString().substring(0, 10) : '-';
+  const genderText = currentUser.gender === 1 ? '男' : currentUser.gender === 0 ? '女' : '-';
 
   const [isEditModalVisible, setIsEditModalVisible] = React.useState(false);
   const [isPasswordModalVisible, setIsPasswordModalVisible] = React.useState(false);
@@ -28,13 +36,13 @@ const UserCenter: React.FC = () => {
     setIsPasswordModalVisible(false);
   };
 
-  const handleEditSubmit = (values) => {
+  const handleEditSubmit = (values: Record<string, unknown>) => {
     console.log('Form values:', values);
     // 后续可以在这一段接入更新用户资料的接口
     setIsEditModalVisible(false);
   };
 
-  const handlePasswordSubmit = (values) => {
+  const handlePasswordSubmit = (values: Record<string, unknown>) => {
     console.log('Form values:', values);
     // 后续可以在这一段接入修改密码的接口
     setIsPasswordModalVisible(false);
@@ -68,9 +76,9 @@ const UserCenter: React.FC = () => {
 
       <Descriptions title="用户信息" layout="vertical" bordered column={1} style={{ marginTop: 20 }}>
         <Descriptions.Item label="用户名">{currentUser.userName}</Descriptions.Item>
-        <Descriptions.Item label="性别">{currentUser.gender===1?'男':'女'}</Descriptions.Item>
+        <Descriptions.Item label="性别">{genderText}</Descriptions.Item>
         <Descriptions.Item label="账号">{currentUser.userAccount}</Descriptions.Item>
-        <Descriptions.Item label="注册日期">{currentUser.createTime.toString().substring(0, 10)}</Descriptions.Item>
+        <Descriptions.Item label="注册日期">{registerDate}</Descriptions.Item>
       </Descriptions>
 
       <Card title="我的课程" style={{ marginTop: 20 }}>

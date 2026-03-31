@@ -64,7 +64,7 @@ const InterfaceAnalysis: React.FC = () => {
   const option = {
     tooltip: {
       trigger: 'axis',
-      formatter: function (params) {
+      formatter: function (params: any[]) {
         let res = '老师教的学生数量:' + params[0].name + '<br>';
         res += '平均成绩' + '：' + params[0].value + '<br>';
         return res;
@@ -150,7 +150,7 @@ const InterfaceAnalysis: React.FC = () => {
   const option1 = {
     tooltip: {
       trigger: 'axis',
-      formatter: function (params) {
+      formatter: function (params: any[]) {
         let res = '老师教的学生数量:' + params[0].name + '<br>';
         res += '平均成绩' + '：' + params[0].value + '<br>';
         return res;

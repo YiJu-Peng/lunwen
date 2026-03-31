@@ -7,6 +7,7 @@ import {
   InteractiveDemo,
   ParallaxContainer
 } from '@/components/ImmersiveExhibit';
+import type { ExhibitItem } from '@/components/ImmersiveExhibit';
 import { 
   TransitionPageContainer,
   TactileButton,
@@ -18,7 +19,7 @@ import {
 const { Title, Paragraph } = Typography;
 
 // 沉浸式设计展示数据
-const exhibitItems = [
+const exhibitItems: ExhibitItem[] = [
   {
     id: '1',
     title: '智能数据分析',

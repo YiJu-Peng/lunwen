@@ -7,8 +7,9 @@ from pathlib import Path
 
 from docx import Document
 from docx.shared import Pt, Cm
+from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.section import WD_SECTION
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
@@ -154,7 +155,31 @@ def trim_document_to_prefix(keep_body_elements):
         body.remove(child)
 
 
+def ensure_page_break_before_text(target_text):
+    """确保指定段落从新页开始。"""
+    for paragraph in doc.paragraphs:
+        if paragraph.text.strip() == target_text:
+            prev_para = paragraph._p.getprevious()
+            if prev_para is not None and ''.join(prev_para.itertext()).strip() == '':
+                has_page_break = False
+                for br in prev_para.iter(qn('w:br')):
+                    if br.get(qn('w:type')) == 'page':
+                        has_page_break = True
+                        break
+                if not has_page_break:
+                    prev_para.getparent().remove(prev_para)
+            prev = paragraph._p.getprevious()
+            if prev is not None:
+                for br in prev.iter(qn('w:br')):
+                    if br.get(qn('w:type')) == 'page':
+                        return
+            breaker = paragraph.insert_paragraph_before('')
+            breaker.add_run().add_break(WD_BREAK.PAGE)
+            return
+
+
 trim_document_to_prefix(26)
+ensure_page_break_before_text('江西农业大学')
 configure_section(doc.sections[0], header_text=None, show_page_number=False)
 
 # ══════════════════════════════════════════════════════════════
@@ -167,6 +192,16 @@ def set_east_asia_font(run, name):
     rFonts = rpr.get_or_add_rFonts()
     rFonts.set(qn('w:eastAsia'), name)
 
+
+def set_bool_prop(run, tag, enabled):
+    rpr = run._r.get_or_add_rPr()
+    el = rpr.find(qn(tag))
+    if el is None:
+        el = OxmlElement(tag)
+        rpr.append(el)
+    el.set(qn('w:val'), '1' if enabled else '0')
+
+
 def ef(run, east='宋体', west=None, size=12, bold=False):
     """设置run的字体：中文字体(east)、西文字体(west)、字号、粗体"""
     if east:
@@ -176,10 +211,146 @@ def ef(run, east='宋体', west=None, size=12, bold=False):
         run.font.name = west
     run.font.size = Pt(size)
     run.font.bold = bold
+    set_bool_prop(run, 'w:b', bold)
+    set_bool_prop(run, 'w:bCs', bold)
+
+
+def get_or_add_style(name, base='Normal'):
+    styles = doc.styles
+    try:
+        style = styles[name]
+    except KeyError:
+        style = styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
+    if base and style.base_style != styles[base]:
+        style.base_style = styles[base]
+    return style
+
+
+def set_style_font(style, east='宋体', west='Times New Roman', size=12, bold=False):
+    style.font.name = west or east
+    style.font.size = Pt(size)
+    style.font.bold = bold
+    style.element.rPr.rFonts.set(qn('w:eastAsia'), east)
+
+
+def configure_styles():
+    normal = doc.styles['Normal']
+    set_style_font(normal, east='宋体', west='Times New Roman', size=12, bold=False)
+
+    heading1 = get_or_add_style('Thesis Heading 1')
+    set_style_font(heading1, east='黑体', west='Times New Roman', size=14, bold=True)
+    heading1.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    heading1.paragraph_format.space_before = Pt(12)
+    heading1.paragraph_format.space_after = Pt(12)
+    heading1.paragraph_format.line_spacing = Pt(20)
+    heading1.paragraph_format.first_line_indent = Pt(0)
+
+    heading2 = get_or_add_style('Thesis Heading 2')
+    set_style_font(heading2, east='黑体', west='Times New Roman', size=12, bold=True)
+    heading2.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    heading2.paragraph_format.space_before = Pt(6)
+    heading2.paragraph_format.space_after = Pt(3)
+    heading2.paragraph_format.line_spacing = Pt(20)
+    heading2.paragraph_format.first_line_indent = Pt(0)
+
+    heading3 = get_or_add_style('Thesis Heading 3')
+    set_style_font(heading3, east='黑体', west='Times New Roman', size=12, bold=True)
+    heading3.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    heading3.paragraph_format.space_before = Pt(3)
+    heading3.paragraph_format.space_after = Pt(0)
+    heading3.paragraph_format.line_spacing = Pt(20)
+    heading3.paragraph_format.first_line_indent = Pt(0)
+
+    body_style = get_or_add_style('Thesis Body')
+    set_style_font(body_style, east='宋体', west='Times New Roman', size=12, bold=False)
+    body_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    body_style.paragraph_format.space_before = Pt(0)
+    body_style.paragraph_format.space_after = Pt(0)
+    body_style.paragraph_format.line_spacing = Pt(20)
+    body_style.paragraph_format.first_line_indent = Pt(24)
+
+    en_body_style = get_or_add_style('Thesis English Body')
+    set_style_font(en_body_style, east='Times New Roman', west='Times New Roman', size=12, bold=False)
+    en_body_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    en_body_style.paragraph_format.space_before = Pt(0)
+    en_body_style.paragraph_format.space_after = Pt(0)
+    en_body_style.paragraph_format.line_spacing = Pt(20)
+    en_body_style.paragraph_format.first_line_indent = Pt(24)
+
+    center_title = get_or_add_style('Thesis Center Title')
+    set_style_font(center_title, east='黑体', west='Times New Roman', size=14, bold=True)
+    center_title.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    center_title.paragraph_format.space_before = Pt(12)
+    center_title.paragraph_format.space_after = Pt(12)
+    center_title.paragraph_format.line_spacing = Pt(20)
+    center_title.paragraph_format.first_line_indent = Pt(0)
+
+    toc_style = get_or_add_style('Thesis TOC')
+    set_style_font(toc_style, east='宋体', west='Times New Roman', size=12, bold=False)
+    toc_style.paragraph_format.space_before = Pt(1)
+    toc_style.paragraph_format.space_after = Pt(1)
+    toc_style.paragraph_format.line_spacing = Pt(20)
+    toc_style.paragraph_format.first_line_indent = Pt(0)
+
+    caption_style = get_or_add_style('Thesis Caption')
+    set_style_font(caption_style, east='宋体', west='Times New Roman', size=10.5, bold=False)
+    caption_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    caption_style.paragraph_format.space_before = Pt(3)
+    caption_style.paragraph_format.space_after = Pt(6)
+    caption_style.paragraph_format.line_spacing = Pt(20)
+    caption_style.paragraph_format.first_line_indent = Pt(0)
+
+    keyword_style = get_or_add_style('Thesis Keyword')
+    set_style_font(keyword_style, east='宋体', west='Times New Roman', size=12, bold=False)
+    keyword_style.paragraph_format.space_before = Pt(12)
+    keyword_style.paragraph_format.space_after = Pt(0)
+    keyword_style.paragraph_format.line_spacing = Pt(20)
+    keyword_style.paragraph_format.first_line_indent = Pt(0)
+
+    reference_style = get_or_add_style('Thesis Reference')
+    set_style_font(reference_style, east='宋体', west='Times New Roman', size=12, bold=False)
+    reference_style.paragraph_format.space_before = Pt(2)
+    reference_style.paragraph_format.space_after = Pt(2)
+    reference_style.paragraph_format.line_spacing = Pt(20)
+    reference_style.paragraph_format.first_line_indent = Pt(0)
+
+
+def center_title(text):
+    p = doc.add_paragraph(style='Thesis Center Title')
+    r = p.add_run(text)
+    ef(r, east='黑体', west='Times New Roman', size=14, bold=True)
+    return p
+
+
+def add_auto_toc():
+    p = doc.add_paragraph(style='Thesis TOC')
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+    begin = OxmlElement('w:fldChar')
+    begin.set(qn('w:fldCharType'), 'begin')
+    p.add_run()._r.append(begin)
+
+    instr = OxmlElement('w:instrText')
+    instr.set(qn('xml:space'), 'preserve')
+    instr.text = 'TOC \\h \\z \\t "Thesis Heading 1,1,Thesis Heading 2,2,Thesis Heading 3,3"'
+    p.add_run()._r.append(instr)
+
+    separate = OxmlElement('w:fldChar')
+    separate.set(qn('w:fldCharType'), 'separate')
+    p.add_run()._r.append(separate)
+
+    hint = p.add_run('目录将随文档打开或字段更新后自动生成')
+    ef(hint, east='宋体', west='Times New Roman', size=12, bold=False)
+
+    end = OxmlElement('w:fldChar')
+    end.set(qn('w:fldCharType'), 'end')
+    p.add_run()._r.append(end)
+
+    doc.add_paragraph(style='Thesis TOC')
 
 def body(text):
     """正文段落：小四(12pt)宋体，首行缩进2字符(24pt)，固定行距20pt"""
-    p = doc.add_paragraph()
+    p = doc.add_paragraph(style='Thesis Body')
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     pf = p.paragraph_format
     pf.space_before = Pt(0); pf.space_after = Pt(0)
@@ -192,7 +363,7 @@ def body(text):
 def h1(text):
     """一级标题（章）：四号(14pt)黑体，居中，前后各12pt
     对应模板：摘要/章标题/参考文献/致谢等居中标题"""
-    p = doc.add_paragraph()
+    p = doc.add_paragraph(style='Thesis Heading 1')
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     pf = p.paragraph_format
     pf.space_before = Pt(12); pf.space_after = Pt(12)
@@ -204,7 +375,7 @@ def h1(text):
 
 def h2(text):
     """二级标题（节）：小四(12pt)黑体加粗，左对齐，前6pt后3pt"""
-    p = doc.add_paragraph()
+    p = doc.add_paragraph(style='Thesis Heading 2')
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     pf = p.paragraph_format
     pf.space_before = Pt(6); pf.space_after = Pt(3)
@@ -216,7 +387,7 @@ def h2(text):
 
 def h3(text):
     """三级标题（小节）：小四(12pt)黑体加粗，左对齐，前3pt后0pt"""
-    p = doc.add_paragraph()
+    p = doc.add_paragraph(style='Thesis Heading 3')
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     pf = p.paragraph_format
     pf.space_before = Pt(3); pf.space_after = Pt(0)
@@ -238,7 +409,7 @@ def insert_fig(fname, caption, w=13.0):
     except Exception:
         ef(run, east='宋体', size=10)
         run.text = f'[图片：{fname}]'
-    pc = doc.add_paragraph()
+    pc = doc.add_paragraph(style='Thesis Caption')
     pc.alignment = WD_ALIGN_PARAGRAPH.CENTER
     pc.paragraph_format.space_before = Pt(3)
     pc.paragraph_format.space_after = Pt(6)
@@ -249,7 +420,7 @@ def insert_fig(fname, caption, w=13.0):
 
 def tbl_add(title, headers, rows):
     """添加表格（含表题）"""
-    pt = doc.add_paragraph()
+    pt = doc.add_paragraph(style='Thesis Caption')
     pt.alignment = WD_ALIGN_PARAGRAPH.CENTER
     pt.paragraph_format.space_before = Pt(6)
     pt.paragraph_format.space_after = Pt(3)
@@ -289,38 +460,13 @@ def code_block(lines):
         r.font.size = Pt(9)
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
+configure_styles()
+
 # ══════════════════════════════════════════════════════════════
 # 目 录
 # ══════════════════════════════════════════════════════════════
-h1('目  录')
-toc = [
-    ('摘  要', 'I'),('Abstract', 'II'),
-    ('第 1 章  绪论', '1'),('  1.1  课题研究背景及意义', '1'),('  1.2  国内外研究现状', '2'),
-    ('  1.3  论文的主要研究内容', '4'),('  1.4  论文的组织结构', '6'),('  1.5  本章小结', '7'),
-    ('第 2 章  系统开发相关技术分析', '8'),('  2.1  相关技术', '8'),
-    ('  2.2  开发环境', '13'),('  2.3  本章小结', '14'),
-    ('第 3 章  可行性与需求分析', '15'),('  3.1  可行性分析', '15'),
-    ('  3.2  功能需求分析', '17'),('  3.3  本章小结', '19'),
-    ('第 4 章  系统概要设计', '20'),('  4.1  系统架构设计', '20'),
-    ('  4.2  总体结构设计', '21'),('  4.3  功能模块设计', '23'),
-    ('  4.4  数据库设计', '26'),('  4.5  本章小结', '30'),
-    ('第 5 章  系统详细设计与实现', '31'),('  5.1  智能课程推荐模块', '31'),
-    ('  5.2  选课模块的实现', '33'),('  5.3  课程冲突检测模块', '37'),
-    ('  5.4  系统管理模块的实现', '39'),('  5.5  消息通知模块的实现', '41'),
-    ('  5.6  系统安全模块的实现', '42'),('  5.7  本章小结', '45'),
-    ('第 6 章  系统测试', '46'),('  6.1  测试设计', '46'),('  6.2  主要功能测试', '46'),
-    ('  6.3  性能压力测试', '51'),('  6.4  本章小结', '52'),
-    ('第 7 章  总结与展望', '53'),('  7.1  总结', '53'),('  7.2  展望', '54'),
-    ('参考文献', '56'),('致谢', '58'),
-]
-for title, page in toc:
-    p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(1)
-    p.paragraph_format.space_after = Pt(1)
-    p.paragraph_format.line_spacing = Pt(20)
-    dots = '·' * max(2, 60 - len(title) - len(page))
-    r = p.add_run(f'{title}{dots}{page}')
-    ef(r, east='宋体', west='Times New Roman', size=12)
+center_title('目  录')
+add_auto_toc()
 
 # 中文摘要单独分节，罗马页码从 I 开始
 start_section(
@@ -336,13 +482,11 @@ start_section(
 h1('摘  要')
 
 body('随着高等教育规模持续扩大，高校选课系统在学期初选课高峰期面临严峻的高并发压力。传统单体架构难以应对大规模并发访问、课程资源动态分配以及个性化推荐等多元需求，系统稳定性、数据一致性和用户体验均存在明显不足。大量高校在选课开放后的前几分钟内即出现服务器响应超时甚至宕机的情况，严重影响学生的正常选课流程，暴露出传统系统架构在突发高并发场景下的脆弱性。')
-body('本文设计并实现了一套基于微服务架构的高校智能选课系统，技术选型上以Spring Boot 2.7和Spring Cloud Alibaba为核心，Nacos统一管理服务注册与配置，Spring Cloud Gateway对外提供路由入口，Sa-Token处理用户鉴权。选课并发控制方面，引入Redisson分布式锁保护库存扣减临界区，通过RabbitMQ将选课请求异步化从而平滑流量峰值，同时借助requestId幂等日志防止重复提交。课程推荐模块根据学生专业字段为课程打分——专业对口课程给90分，通用选修课程给50分，降序取前N条作为推荐列表，并附上推荐理由文字；时间冲突检测则在原课程时间窗口基础上两端各延展15分钟，模拟课间转场所需时间，再与已选课程逐一比对。前端选用React结合Ant Design Pro构建管理界面，数据层使用MyBatis-Plus简化了大量重复的CRUD操作。')
+body('本文设计并实现了一套基于微服务架构的高校智能选课系统，技术选型上以Spring Boot 2.6.13和Spring Cloud Alibaba为核心，Nacos统一管理服务注册与配置，Spring Cloud Gateway对外提供路由入口，Sa-Token处理用户鉴权。选课并发控制方面，引入Redisson分布式锁保护库存扣减临界区，通过RabbitMQ将选课请求异步化从而平滑流量峰值，同时在选课服务内部记录requestId与处理状态，便于结果回查与异常排查。课程推荐模块根据学生专业字段为课程打分，专业对口课程给90分，通用选修课程给50分，降序取前N条作为推荐列表，并附上推荐理由文字；时间冲突检测则在原课程时间窗口基础上两端各延展15分钟，模拟课间转场所需时间，再与已选课程逐一比对。前端选用React结合Ant Design Pro构建管理界面，数据层使用MyBatis-Plus简化了大量重复的CRUD操作。')
 body('笔者使用JMeter对选课接口进行了阶梯并发压测，结果显示在1000并发用户下平均响应时间约790ms，吞吐量约1218 TPS，错误率维持在2%以内，全程未出现一次课程超卖，说明Redisson分布式锁的并发保护策略是有效的，系统整体能够支撑高校大规模选课场景的实际需求。')
 
 p_kw = doc.add_paragraph()
-p_kw.paragraph_format.space_before = Pt(12)
-p_kw.paragraph_format.line_spacing = Pt(20)
-p_kw.paragraph_format.first_line_indent = Pt(0)
+p_kw.style = 'Thesis Keyword'
 rk1 = p_kw.add_run('关键词：')
 ef(rk1, east='黑体', size=12, bold=True)
 rk2 = p_kw.add_run('微服务；智能推荐；高并发；选课系统；冲突检测')
@@ -360,7 +504,7 @@ h1('Abstract')
 
 def ebody(text):
     """英文正文段落"""
-    p = doc.add_paragraph()
+    p = doc.add_paragraph(style='Thesis English Body')
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.space_before = Pt(0); p.paragraph_format.space_after = Pt(0)
     p.paragraph_format.line_spacing = Pt(20)
@@ -369,13 +513,12 @@ def ebody(text):
     r.font.name = 'Times New Roman'; r.font.size = Pt(12)
 
 ebody('With the continuous expansion of higher education, the university course selection system faces severe high-concurrency pressure at the beginning of each semester. Traditional monolithic architectures are inadequate to handle large-scale concurrent access, dynamic course resource allocation, and personalized recommendation requirements, leading to obvious deficiencies in system stability, data consistency, and user experience.')
-ebody('This paper designs and implements an intelligent course selection system based on microservice architecture, solving three core problems: system stability and data consistency under high concurrency, personalized intelligent course recommendation, and automatic time-conflict detection and warning. The system uses Spring Boot 2.7 with Spring Cloud Alibaba, Nacos for service registration and configuration, Spring Cloud Gateway for unified routing and authentication, and Sa-Token for fine-grained permission management. Redisson distributed locks prevent overselling, RabbitMQ handles asynchronous peak shaving and notifications, and requestId idempotency ensures each request is processed only once. The recommendation module scores courses based on major match (90 points for matched courses, 50 for general electives). The conflict detection module uses a time-window algorithm with 15-minute buffer thresholds. The frontend is built with React and Ant Design Pro, and the backend data layer uses MyBatis-Plus.')
+ebody('This paper designs and implements an intelligent course selection system based on microservice architecture, solving three core problems: system stability and data consistency under high concurrency, personalized intelligent course recommendation, and automatic time-conflict detection and warning. The system uses Spring Boot 2.6.13 with Spring Cloud Alibaba, Nacos for service registration and configuration, Spring Cloud Gateway for unified routing and authentication, and Sa-Token for unified authentication management. Redisson distributed locks protect stock deduction, RabbitMQ handles asynchronous request processing and notifications, and enrollment logs record request status for tracing. The recommendation module scores courses based on major match, assigning 90 points to matched courses and 50 points to general electives. The conflict detection module uses a time-window algorithm with 15-minute buffer thresholds. The frontend is built with React and Ant Design Pro, and the backend data layer uses MyBatis-Plus.')
 ebody('Testing results show that under 1000 concurrent users, the system maintains an average response time of 790ms, a throughput of 1218 TPS, and an error rate below 2%, with zero overselling incidents, meeting large-scale course selection requirements.')
 
 p_kw2 = doc.add_paragraph()
-p_kw2.paragraph_format.space_before = Pt(12)
-p_kw2.paragraph_format.line_spacing = Pt(20)
-p_kw2.paragraph_format.first_line_indent = Pt(24)
+p_kw2.style = 'Thesis Keyword'
+p_kw2.paragraph_format.first_line_indent = Pt(0)
 rk3 = p_kw2.add_run('Key Words: ')
 rk3.font.name = 'Times New Roman'; rk3.font.size = Pt(12); rk3.font.bold = True
 rk4 = p_kw2.add_run('Microservices; Intelligent Recommendation; High Concurrency; Course Selection; Conflict Detection')

@@ -45,7 +45,7 @@ const InterfaceAnalysis: React.FC = () => {
     return item.failCount
   })
   const weiguakechartData = data.map(item => {
-    return item.totalInRange- item.failCount
+    return (item.totalInRange ?? 0) - (item.failCount ?? 0)
   })
   const guakelvchartData = data.map(item => {
     return {

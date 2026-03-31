@@ -3,7 +3,7 @@
 // DO NOT CHANGE IT MANUALLY!
 import React from 'react';
 import { Avatar, version, Dropdown, Menu, Spin } from 'antd';
-import { LogoutOutlined } from '/workspace/node_modules/@ant-design/icons';
+import { LogoutOutlined } from '/home/pengyiju/code/lunwen/lunwen/selsect-course/selsect-course/cloudCalculate-front/myapp/node_modules/@ant-design/icons';
 
 export function getRightRenderContent (opts: {
    runtimeConfig: any,

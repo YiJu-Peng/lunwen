@@ -18,6 +18,7 @@ import MaterialToast from '@/components/MaterialToast';
 import { motion } from 'framer-motion';
 import './SchedulePage.less';
 import moment from 'moment';
+import { isPaperPreview } from '@/utils/paperPreview';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -67,6 +68,59 @@ const generateGradient = (baseColor: string) => {
   return `linear-gradient(135deg, ${baseColor} 0%, ${baseColor}99 100%)`;
 };
 
+const demoScheduleData: ScheduleCourseItem[] = [
+  {
+    id: 1001,
+    subjectId: 210301,
+    teacherId: 3011,
+    teacherName: '李佳航',
+    courseName: '分布式系统架构',
+    teachingTime: new Date('2026-04-06T08:00:00'),
+    location: '软件楼 A302',
+    dayOfWeek: 1,
+    startTime: 1,
+    endTime: 1,
+    remarks: '核心专业课',
+  },
+  {
+    id: 1002,
+    subjectId: 210317,
+    teacherId: 3015,
+    teacherName: '张倩',
+    courseName: '云平台运维实践',
+    teachingTime: new Date('2026-04-07T14:00:00'),
+    location: '云计算实验室 B201',
+    dayOfWeek: 2,
+    startTime: 3,
+    endTime: 3,
+    remarks: '实验课',
+  },
+  {
+    id: 1003,
+    subjectId: 210326,
+    teacherId: 3020,
+    teacherName: '刘海峰',
+    courseName: '服务治理与性能优化',
+    teachingTime: new Date('2026-04-08T10:00:00'),
+    location: '信息楼 C403',
+    dayOfWeek: 3,
+    startTime: 2,
+    endTime: 2,
+  },
+  {
+    id: 1004,
+    subjectId: 210330,
+    teacherId: 3033,
+    teacherName: '王璐',
+    courseName: '软件测试与质量保障',
+    teachingTime: new Date('2026-04-10T16:00:00'),
+    location: '软件楼 A410',
+    dayOfWeek: 5,
+    startTime: 4,
+    endTime: 4,
+  },
+];
+
 const SchedulePage: React.FC = () => {
   // 初始化页面动效变量
   useMotionSetup();
@@ -78,6 +132,7 @@ const SchedulePage: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const currentUser = initialState?.currentUser;
   const weekViewRef = useRef<HTMLDivElement>(null);
+  const paperPreview = isPaperPreview();
 
   useEffect(() => {
     fetchScheduleData();
@@ -85,6 +140,20 @@ const SchedulePage: React.FC = () => {
 
   // 拉取当前课表
   const fetchScheduleData = async () => {
+    if (paperPreview) {
+      const processedSchedule = demoScheduleData.map((course, index) => {
+        const color = generateColor(index);
+        return {
+          ...course,
+          color,
+          gradient: generateGradient(color),
+        };
+      });
+      setScheduleData(processedSchedule);
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
     if (!currentUser?.id) {
       MaterialToast.error('用户未登录');
       setLoading(false);
@@ -377,7 +446,7 @@ const SchedulePage: React.FC = () => {
   return (
     <PageContainer
       title="我的课程表"
-      subTitle="查看您的课程安排"
+      subTitle="查看本周课程安排与上课地点"
       extra={[
         <Select
           key="viewType"

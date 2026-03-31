@@ -52,7 +52,7 @@ function getRule(req: Request, res: Response, u: string) {
     const sorter = JSON.parse(params.sorter);
     dataSource = dataSource.sort((prev, next) => {
       let sortNumber = 0;
-      (Object.keys(sorter) as Array<keyof API.RuleListItem>).forEach((key) => {
+      (Object.keys(sorter) as Array<Extract<keyof API.RuleListItem, string>>).forEach((key) => {
         let nextSort = next?.[key] as number;
         let preSort = prev?.[key] as number;
         if (sorter[key] === 'descend') {
@@ -78,7 +78,7 @@ function getRule(req: Request, res: Response, u: string) {
     };
     if (Object.keys(filter).length > 0) {
       dataSource = dataSource.filter((item) => {
-        return (Object.keys(filter) as Array<keyof API.RuleListItem>).some((key) => {
+        return (Object.keys(filter) as Array<Extract<keyof API.RuleListItem, string>>).some((key) => {
           if (!filter[key]) {
             return true;
           }

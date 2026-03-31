@@ -6,8 +6,8 @@ import axios, {
   type AxiosRequestConfig,
   type AxiosResponse,
   type AxiosError,
-} from '/workspace/node_modules/axios';
-import useUmiRequest, { UseRequestProvider } from '/workspace/node_modules/@umijs/plugins/node_modules/@ahooksjs/use-request';
+} from '/home/pengyiju/code/lunwen/lunwen/selsect-course/selsect-course/cloudCalculate-front/myapp/node_modules/axios';
+import useUmiRequest, { UseRequestProvider } from '/home/pengyiju/code/lunwen/lunwen/selsect-course/selsect-course/cloudCalculate-front/myapp/node_modules/@umijs/plugins/node_modules/@ahooksjs/use-request';
 import { ApplyPluginsType } from 'umi';
 import { getPluginManager } from '../core/plugin';
 
@@ -26,7 +26,7 @@ import {
   PaginatedOptionsWithFormat,
   PaginatedParams,
   PaginatedResult,
-} from '/workspace/node_modules/@umijs/plugins/node_modules/@ahooksjs/use-request/es/types';
+} from '/home/pengyiju/code/lunwen/lunwen/selsect-course/selsect-course/cloudCalculate-front/myapp/node_modules/@umijs/plugins/node_modules/@ahooksjs/use-request/es/types';
 
 type ResultWithData< T = any > = { data?: T; [key: string]: any };
 

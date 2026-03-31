@@ -22,7 +22,7 @@ const Settings: ProLayoutProps & {
   // 色弱辅助模式默认关闭
   colorWeak: false,
   // 系统名称统一写在这一项
-  title: '工学院选课系统',
+  title: '高校智能选课系统',
   // PWA 能力直接开启
   pwa: true,
   // 首页图标在这一项指定
@@ -31,8 +31,8 @@ const Settings: ProLayoutProps & {
   iconfontUrl: '',
   // 页面水印相关参数统一放在这一块
   waterMarkProps: {
-    content: '工学院选课系统',
-    fontColor: 'rgba(24, 144, 255, 0.15)',
+    content: '',
+    fontColor: 'rgba(24, 144, 255, 0.0)',
   },
   // 菜单分栏模式暂时不启用
   splitMenus: false,

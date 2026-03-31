@@ -79,7 +79,7 @@ const Admin: React.FC = () => {
   return (
     <PageContainer content={""}>
       {/* eslint-disable-next-line react/no-unknown-property */}
-      <h2 align={"center"}>上传每门课成绩或者全班成绩</h2>
+      <h2 style={{ textAlign: 'center' }}>上传每门课成绩或者全班成绩</h2>
       <Dragger {...props1}>
         <p className="ant-upload-drag-icon">
           <InboxOutlined />
@@ -89,7 +89,7 @@ const Admin: React.FC = () => {
           支持一个或多个Excel表格上传，自动进行表格数据检验。
         </p>
       </Dragger>
-      <h2 align={"center"}>上传缓考数据</h2>
+      <h2 style={{ textAlign: 'center' }}>上传缓考数据</h2>
       <Dragger {...props2}>
         <p className="ant-upload-drag-icon">
           <InboxOutlined />
@@ -104,7 +104,7 @@ const Admin: React.FC = () => {
           message={'更多的成绩数据分析已经计算成功，已经发布。'}
           type="success"
           showIcon
-          banners
+          banner
           style={{
             margin: -12,
             marginBottom: 48,
@@ -116,7 +116,7 @@ const Admin: React.FC = () => {
             textAlign: 'center',
           }}
         >
-          <SmileTwoTone /> DawnCclin <HeartTwoTone twoToneColor="#eb2f96" /> You
+          <SmileTwoTone /> 系统管理中心 <HeartTwoTone twoToneColor="#eb2f96" />
         </Typography.Title>
       </Card>
     </PageContainer>

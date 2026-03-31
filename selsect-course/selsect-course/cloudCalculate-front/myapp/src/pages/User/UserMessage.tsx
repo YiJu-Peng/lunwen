@@ -12,6 +12,7 @@ import {
 import PageContainer from '@/components/PageContainer';
 import CommonCard from '@/components/CommonCard';
 import './UserMessage.less';
+import { getPaperPreviewParam, isPaperPreview } from '@/utils/paperPreview';
 
 const {Text, Paragraph} = Typography;
 
@@ -52,6 +53,18 @@ const messageTypeConfig = {
     tagColor: 'green',
     title: '选课信息'
   },
+  'courseSuccess': {
+    icon: <CalendarOutlined />,
+    color: '#52c41a',
+    tagColor: 'green',
+    title: '选课成功通知'
+  },
+  'courseFailure': {
+    icon: <CalendarOutlined />,
+    color: '#ff4d4f',
+    tagColor: 'red',
+    title: '选课失败通知'
+  },
   'grade': {
     icon: <ReadOutlined />,
     color: '#722ed1',
@@ -62,6 +75,12 @@ const messageTypeConfig = {
 
 // 获取消息类型（简单实现，实际应该根据后端数据判断）
 const getMessageType = (content: string) => {
+  if (content && content.includes('选课成功')) {
+    return 'courseSuccess';
+  }
+  if (content && content.includes('选课失败')) {
+    return 'courseFailure';
+  }
   if (content && (content.includes('选修') || content.includes('课程'))) {
     return 'course';
   } else if (content && (content.includes('成绩') || content.includes('分数'))) {
@@ -103,6 +122,27 @@ const formatTime = (timeStr: string) => {
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 };
 
+const demoMessages: MessageItem[] = [
+  {
+    id: 1,
+    message: '选课成功：课程《分布式系统架构》已加入您的课程表，上课时间为周一 08:00-09:40，地点为软件楼 A302。',
+    isRead: 0,
+    createTime: '2026-03-30 09:12:00',
+  },
+  {
+    id: 2,
+    message: '选课失败：课程《云平台运维实践》与已选课程《操作系统设计》存在时间冲突，请调整后重新提交。',
+    isRead: 0,
+    createTime: '2026-03-30 08:46:00',
+  },
+  {
+    id: 3,
+    message: '系统通知：2026-2027 学年第一学期第一轮选课将于 4 月 10 日 09:00 正式开放。',
+    isRead: 1,
+    createTime: '2026-03-29 18:30:00',
+  },
+];
+
 const UserMessage: React.FC = () => {
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -111,11 +151,24 @@ const UserMessage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const {initialState} = useModel('@@initialState') as { initialState: InitialState | undefined };
   const currentUser = initialState?.currentUser;
+  const paperPreview = isPaperPreview();
+  const paperPreviewType = getPaperPreviewParam('type');
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        if (paperPreview) {
+          const previewMessages =
+            paperPreviewType === 'success'
+              ? [demoMessages[0]]
+              : paperPreviewType === 'failure'
+                ? [demoMessages[1]]
+                : demoMessages;
+          setMessages(previewMessages);
+          setTotal(previewMessages.length);
+          return;
+        }
         if (currentUser?.id) {
           const data = await getMessagesUsingGet({
             userId: currentUser.id,
@@ -138,7 +191,7 @@ const UserMessage: React.FC = () => {
     if (currentUser?.id) {
       fetchData();
     }
-  }, [currentUser, current, pageSize]);
+  }, [currentUser, current, pageSize, paperPreview, paperPreviewType]);
 
   const handlePageChange = (page: number, newPageSize?: number) => {
     setCurrent(page);
@@ -149,6 +202,13 @@ const UserMessage: React.FC = () => {
   
   const markAsRead = async (id: number) => {
     try {
+      if (paperPreview) {
+        const updatedMessages = messages.map(msg =>
+          msg.id === id ? {...msg, isRead: 1} : msg
+        );
+        setMessages(updatedMessages);
+        return;
+      }
       await readMessageUsingPut({id});
       const updatedMessages = messages.map(msg =>
         msg.id === id ? {...msg, isRead: 1} : msg

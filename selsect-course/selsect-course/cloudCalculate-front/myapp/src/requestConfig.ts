@@ -1,5 +1,4 @@
 ﻿import type { RequestOptions } from '@@/plugin-request/request';
-import type { RequestConfig } from '@umijs/max';
 import { message } from 'antd';
 import { history } from '@umijs/max';
 
@@ -16,7 +15,7 @@ interface ResponseStructure {
  * pro 自带了错误处理能力，按需可以在这一层继续扩展
  * @doc https://umijs.org/docs/max/request#配置
  */
-export const requestConfig: RequestConfig = {
+export const requestConfig = {
   baseURL: 'http://localhost:9900/api', // 本地联调时统一走网关
   withCredentials: true,
   // 请求拦截器
@@ -39,7 +38,7 @@ export const requestConfig: RequestConfig = {
   ],
   // 响应拦截器
   responseInterceptors: [
-    (response) => {
+    (response: any) => {
       // 拦截响应数据，进行个性化处理
       const { data } = response as unknown as ResponseStructure;
 

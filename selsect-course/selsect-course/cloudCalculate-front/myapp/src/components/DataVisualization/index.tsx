@@ -228,11 +228,11 @@ const DataVisualization: React.FC<DataVisualizationProps> = ({
         cancelAnimationFrame(animationId);
         
         // 清理Three.js资源
-        visualizationGroup.traverse((obj: THREE.Object3D) => {
+        visualizationGroup.traverse((obj: any) => {
           if (obj instanceof THREE.Mesh) {
             obj.geometry.dispose();
             if (Array.isArray(obj.material)) {
-              obj.material.forEach((mat: THREE.Material) => mat.dispose());
+              obj.material.forEach((mat: any) => mat.dispose());
             } else {
               obj.material.dispose();
             }
