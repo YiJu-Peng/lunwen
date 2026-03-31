@@ -37,6 +37,11 @@ pnpm-debug.log*
 __pycache__/
 *.pyc
 
+# Local tooling / temp files
+.codex
+.codex/
+6020222035-彭益举/tmp_refresh_test.docx
+
 # Project backups
 *_backup_*/
 
