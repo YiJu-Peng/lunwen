@@ -446,20 +446,6 @@ def tbl_add(title, headers, rows):
                 ef(rn, east='宋体', size=10)
     pt._p.addnext(t._tbl)
 
-def code_block(lines):
-    """代码块：仿宋9pt，左缩进1cm"""
-    for line in lines:
-        p = doc.add_paragraph()
-        p.paragraph_format.left_indent = Cm(1)
-        p.paragraph_format.space_before = Pt(0)
-        p.paragraph_format.space_after = Pt(0)
-        p.paragraph_format.line_spacing = Pt(15)
-        r = p.add_run(line)
-        r.font.name = 'Courier New'
-        set_east_asia_font(r, '仿宋')
-        r.font.size = Pt(9)
-    doc.add_paragraph().paragraph_format.space_after = Pt(6)
-
 configure_styles()
 
 # ══════════════════════════════════════════════════════════════

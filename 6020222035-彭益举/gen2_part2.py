@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Part2: 第1-3章内容"""
 
-def write_ch1_3(doc, body, h1, h2, h3, insert_fig, tbl_add, code_block):
+def write_ch1_3(doc, body, h1, h2, h3, insert_fig, tbl_add):
 
     # ══════════════════════════════════════════════════════════
     # 第 1 章  绪论

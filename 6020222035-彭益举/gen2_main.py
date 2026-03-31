@@ -214,17 +214,16 @@ h2        = p1.h2
 h3        = p1.h3
 insert_fig = p1.insert_fig
 tbl_add   = p1.tbl_add
-code_block = p1.code_block
 start_section = p1.start_section
 OUT       = p1.OUT
 
 # ── 执行 Part2（第1-3章）────────────────────────────────────────
 p2 = load('/home/pengyiju/code/lunwen/lunwen/6020222035-彭益举/gen2_part2.py')
-p2.write_ch1_3(doc, body, h1, h2, h3, insert_fig, tbl_add, code_block)
+p2.write_ch1_3(doc, body, h1, h2, h3, insert_fig, tbl_add)
 
 # ── 执行 Part3（第4-7章 + 参考文献 + 致谢）──────────────────────
 p3 = load('/home/pengyiju/code/lunwen/lunwen/6020222035-彭益举/gen2_part3.py')
-p3.write_ch4_7(doc, body, h1, h2, h3, insert_fig, tbl_add, code_block, start_section)
+p3.write_ch4_7(doc, body, h1, h2, h3, insert_fig, tbl_add, start_section)
 
 # ── 保存 ────────────────────────────────────────────────────────
 doc.save(OUT)

@@ -4,7 +4,7 @@
 from docx.shared import Pt
 from docx.oxml.ns import qn
 
-def write_ch4_7(doc, body, h1, h2, h3, insert_fig, tbl_add, code_block, start_section=None):
+def write_ch4_7(doc, body, h1, h2, h3, insert_fig, tbl_add, start_section=None):
 
     # ══════════════════════════════════════════════════════════
     # 第 4 章  概要设计
