@@ -75,7 +75,7 @@ def write_ch1_3(doc, body, h1, h2, h3, insert_fig, tbl_add):
 
     h2('2.2  开发环境')
     h3('2.2.1  开发工具')
-    body('集成开发环境：后端开发采用IntelliJ IDEA 2023 Ultimate版，通过深度集成的Spring Boot插件、Nacos工具、Docker支持，实现从微服务编码到容器化构建的全流程开发。前端开发采用VS Code，配合ESLint、TypeScript语言服务和Ant Design Pro代码片段，提升界面开发效率与代码质量。版本管理采用Git，通过Gitee托管代码仓库，执行特性分支开发模式，commit message遵循约定式规范。数据库管理：Navicat Premium 15用于MySQL管理；Another Redis Desktop Manager用于Redis监控；Postman用于API接口调试。')
+    body('集成开发环境：后端开发采用IntelliJ IDEA 2023 Ultimate版，通过深度集成的Spring Boot插件、Nacos工具、Docker支持，实现从微服务编码到容器化构建的全流程开发。前端开发采用VS Code，配合ESLint、TypeScript语言服务和Ant Design Pro代码片段，提升界面开发效率与代码质量。版本管理采用Git，通过Gitee托管代码仓库，执行特性分支开发模式，commit message遵循约定式规范。数据库管理方面，Navicat Premium 15用于MySQL管理，Another Redis Desktop Manager用于Redis监控。接口联调与功能测试阶段使用Postman对登录、推荐、选课、退课、消息查询等核心接口逐项发送请求并核对响应结果，为第六章测试过程整理提供原始记录。')
 
     h3('2.2.2  运行环境')
     body('后端按pom配置使用Java 8，构建工具是Maven 3.9。中间件方面，MySQL 8.0存储业务数据，Redis用于会话与分布式锁支撑，RabbitMQ负责消息队列并开启了消息持久化配置，Nacos 2.x作为注册与配置中心。前端基于Node.js运行环境，用npm管理依赖，锁定package-lock.json来保证开发和生产环境的一致性。UmiJS内置Webpack做打包，支持按路由懒加载。安全方面，部署阶段可由Nginx承担HTTPS终止，日志通过SLF4J + Logback输出，方便排查问题。')
@@ -100,6 +100,7 @@ def write_ch1_3(doc, body, h1, h2, h3, insert_fig, tbl_add):
 
     h3('3.1.3  开发成本可行性')
     body('本系统由笔者独立开发完成，所采用技术栈均为开源方案，软件授权成本较低。开发工具方面，后端使用学校提供教育授权的IntelliJ IDEA，前端使用VS Code。部署资源方面，系统运行于一台2核4G基础云服务器，中间件通过Docker Compose统一编排。综合服务器、域名及其他支出，全年总成本控制在300元以内，符合毕业设计项目对开发成本的预期要求。')
+    body('从工作量构成看，项目不仅完成了需求分析、数据库设计、微服务拆分、前后端编码与接口联调，还覆盖了容器化部署、功能测试、性能测试、截图取证、论文撰写与反复修改等完整工程链路，整体工作量能够满足软件工程专业本科毕业设计的基本要求。')
 
     h2('3.2  功能需求分析')
     h3('3.2.1  功能描述')
