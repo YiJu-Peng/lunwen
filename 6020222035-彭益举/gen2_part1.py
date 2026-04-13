@@ -26,6 +26,11 @@ doc.core_properties.subject = '江西农业大学本科毕业论文'
 
 BODY_HEADER = '江西农业大学本科毕业论文（设计、创作）'
 
+COVER_REPLACEMENTS = {
+    '学  院：          计算机与信息工程学院': '学  院：          软件学院',
+    '班  级：         软件工程2022-1班': '班  级：         2206',
+}
+
 # ── 页面设置：A4，与范本一致 ────────────────────────────────────
 def apply_section_layout(section):
     section.page_height = Cm(29.7)
@@ -182,6 +187,38 @@ trim_document_to_prefix(26)
 ensure_page_break_before_text('江西农业大学')
 configure_section(doc.sections[0], header_text=None, show_page_number=False)
 
+
+def apply_cover_replacements():
+    for paragraph in doc.paragraphs[:20]:
+        full_text = ''.join(run.text for run in paragraph.runs)
+        replacement = COVER_REPLACEMENTS.get(full_text)
+        if replacement is None:
+            continue
+        if paragraph.runs:
+            target_index = 0
+            for idx, run in enumerate(paragraph.runs):
+                if run.text:
+                    target_index = idx
+                    break
+            paragraph.runs[target_index].text = replacement
+            for idx, run in enumerate(paragraph.runs):
+                if idx != target_index:
+                    run.text = ''
+        else:
+            paragraph.add_run(replacement)
+
+    # Preserve the original cover layout for class line by keeping the value
+    # in the middle run instead of collapsing the whole line into one run.
+    class_para = doc.paragraphs[14]
+    if len(class_para.runs) >= 4:
+        class_para.runs[0].text = ''
+        class_para.runs[1].text = '班  级：         '
+        class_para.runs[2].text = '2206'
+        class_para.runs[3].text = ''
+
+
+apply_cover_replacements()
+
 # ══════════════════════════════════════════════════════════════
 # 辅助函数（严格按模板格式）
 # ══════════════════════════════════════════════════════════════
@@ -238,28 +275,31 @@ def configure_styles():
     set_style_font(normal, east='宋体', west='Times New Roman', size=12, bold=False)
 
     heading1 = get_or_add_style('Thesis Heading 1')
-    set_style_font(heading1, east='黑体', west='Times New Roman', size=14, bold=True)
-    heading1.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    set_style_font(heading1, east='黑体', west='Times New Roman', size=14, bold=False)
+    heading1.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
     heading1.paragraph_format.space_before = Pt(12)
     heading1.paragraph_format.space_after = Pt(12)
     heading1.paragraph_format.line_spacing = Pt(20)
     heading1.paragraph_format.first_line_indent = Pt(0)
+    heading1.paragraph_format.left_indent = Pt(0)
 
     heading2 = get_or_add_style('Thesis Heading 2')
-    set_style_font(heading2, east='黑体', west='Times New Roman', size=12, bold=True)
+    set_style_font(heading2, east='黑体', west='Times New Roman', size=12, bold=False)
     heading2.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
     heading2.paragraph_format.space_before = Pt(6)
     heading2.paragraph_format.space_after = Pt(3)
     heading2.paragraph_format.line_spacing = Pt(20)
     heading2.paragraph_format.first_line_indent = Pt(0)
+    heading2.paragraph_format.left_indent = Pt(0)
 
     heading3 = get_or_add_style('Thesis Heading 3')
-    set_style_font(heading3, east='黑体', west='Times New Roman', size=12, bold=True)
+    set_style_font(heading3, east='黑体', west='Times New Roman', size=12, bold=False)
     heading3.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
     heading3.paragraph_format.space_before = Pt(3)
     heading3.paragraph_format.space_after = Pt(0)
     heading3.paragraph_format.line_spacing = Pt(20)
     heading3.paragraph_format.first_line_indent = Pt(0)
+    heading3.paragraph_format.left_indent = Pt(0)
 
     body_style = get_or_add_style('Thesis Body')
     set_style_font(body_style, east='宋体', west='Times New Roman', size=12, bold=False)
@@ -361,40 +401,42 @@ def body(text):
     return p
 
 def h1(text):
-    """一级标题（章）：四号(14pt)黑体，居中，前后各12pt
-    对应模板：摘要/章标题/参考文献/致谢等居中标题"""
+    """一级标题（章）：四号(14pt)黑体，居左，不加粗"""
     p = doc.add_paragraph(style='Thesis Heading 1')
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     pf = p.paragraph_format
     pf.space_before = Pt(12); pf.space_after = Pt(12)
     pf.line_spacing = Pt(20)
     pf.first_line_indent = Pt(0)
+    pf.left_indent = Pt(0)
     r = p.add_run(text)
-    ef(r, east='黑体', size=14, bold=True)
+    ef(r, east='黑体', size=14, bold=False)
     return p
 
 def h2(text):
-    """二级标题（节）：小四(12pt)黑体加粗，左对齐，前6pt后3pt"""
+    """二级标题（节）：小四(12pt)黑体，左对齐，不加粗"""
     p = doc.add_paragraph(style='Thesis Heading 2')
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     pf = p.paragraph_format
     pf.space_before = Pt(6); pf.space_after = Pt(3)
     pf.line_spacing = Pt(20)
     pf.first_line_indent = Pt(0)
+    pf.left_indent = Pt(0)
     r = p.add_run(text)
-    ef(r, east='黑体', size=12, bold=True)
+    ef(r, east='黑体', size=12, bold=False)
     return p
 
 def h3(text):
-    """三级标题（小节）：小四(12pt)黑体加粗，左对齐，前3pt后0pt"""
+    """三级标题（小节）：小四(12pt)黑体，左对齐，不加粗"""
     p = doc.add_paragraph(style='Thesis Heading 3')
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     pf = p.paragraph_format
     pf.space_before = Pt(3); pf.space_after = Pt(0)
     pf.line_spacing = Pt(20)
     pf.first_line_indent = Pt(0)
+    pf.left_indent = Pt(0)
     r = p.add_run(text)
-    ef(r, east='黑体', size=12, bold=True)
+    ef(r, east='黑体', size=12, bold=False)
     return p
 
 def insert_fig(fname, caption, w=13.0):
@@ -418,6 +460,40 @@ def insert_fig(fname, caption, w=13.0):
     ef(rc, east='宋体', west='Times New Roman', size=10.5)
     return p
 
+def set_cell_border(cell, **kwargs):
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    tcBorders = tcPr.first_child_found_in('w:tcBorders')
+    if tcBorders is None:
+        tcBorders = OxmlElement('w:tcBorders')
+        tcPr.append(tcBorders)
+    for edge in ('left', 'top', 'right', 'bottom', 'insideH', 'insideV'):
+        edge_data = kwargs.get(edge)
+        tag = 'w:' + edge
+        element = tcBorders.find(qn(tag))
+        if edge_data:
+            if element is None:
+                element = OxmlElement(tag)
+                tcBorders.append(element)
+            for key, value in edge_data.items():
+                element.set(qn('w:' + key), str(value))
+        elif element is not None:
+            tcBorders.remove(element)
+
+
+def apply_three_line_table(table):
+    heavy = {'val': 'single', 'sz': 8, 'color': '000000'}
+    thin = {'val': 'single', 'sz': 4, 'color': '000000'}
+    last_row = len(table.rows) - 1
+    for r, row in enumerate(table.rows):
+        for cell in row.cells:
+            set_cell_border(
+                cell,
+                top=heavy if r == 0 else None,
+                bottom=heavy if r == last_row else (thin if r == 0 else None),
+            )
+
+
 def tbl_add(title, headers, rows):
     """添加表格（含表题）"""
     pt = doc.add_paragraph(style='Thesis Caption')
@@ -434,16 +510,18 @@ def tbl_add(title, headers, rows):
     tail.paragraph_format.space_after = Pt(6)
 
     t = doc.add_table(rows=1+len(rows), cols=len(headers))
-    t.style = 'Table Grid'
     for i, h in enumerate(headers):
         c = t.rows[0].cells[i]; c.text = h
+        c.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
         for rn in c.paragraphs[0].runs:
             ef(rn, east='宋体', size=10, bold=True)
     for ri, row in enumerate(rows):
         for ci, v in enumerate(row):
             c = t.rows[ri+1].cells[ci]; c.text = str(v)
+            c.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             for rn in c.paragraphs[0].runs:
                 ef(rn, east='宋体', size=10)
+    apply_three_line_table(t)
     pt._p.addnext(t._tbl)
 
 configure_styles()

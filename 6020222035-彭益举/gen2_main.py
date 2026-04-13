@@ -25,9 +25,12 @@ def load(path):
 
 
 def pick_free_port():
-    with socket.socket() as sock:
-        sock.bind(('127.0.0.1', 0))
-        return sock.getsockname()[1]
+    try:
+        with socket.socket() as sock:
+            sock.bind(('127.0.0.1', 0))
+            return sock.getsockname()[1]
+    except PermissionError:
+        return None
 
 
 def wait_for_port(port, timeout=15):
@@ -52,6 +55,9 @@ def extract_toc_entries(doc_path):
         return []
 
     port = pick_free_port()
+    if port is None:
+        print('Skip TOC extraction: socket permission denied in current environment')
+        return []
     accept = f'socket,host=127.0.0.1,port={port};urp;StarOffice.ServiceManager'
     proc = subprocess.Popen(
         [
@@ -187,7 +193,7 @@ def build_static_toc(doc_path, entries):
         level = get_toc_level(title)
         p = doc.add_paragraph(style='Thesis TOC')
         pf = p.paragraph_format
-        pf.left_indent = Pt(24 * (level - 1))
+        pf.left_indent = Pt(12 * (level - 1))
         pf.first_line_indent = Pt(0)
         pf.space_before = Pt(1)
         pf.space_after = Pt(1)
