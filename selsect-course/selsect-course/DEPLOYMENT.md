@@ -59,6 +59,31 @@ select-course-backend/selectcourse/src/main/resources/application.yml
 
 ## 3. 初始化数据库
 
+如果是为了在另一台电脑恢复当前这份项目数据，优先使用仓库里的完整备份：
+
+```bash
+mysql -uroot -proot < SQL/backup/lunwen_mysql_backup_20260424.sql
+```
+
+这份备份来自 2026-04-24 当前本机 MySQL 容器，包含两个数据库：
+
+```text
+cloud_calculate  主业务服务数据库
+enrollment       选课服务数据库
+```
+
+导入后确认：
+
+```bash
+mysql -uroot -proot -e "SHOW DATABASES;"
+mysql -uroot -proot -e "SHOW TABLES FROM cloud_calculate;"
+mysql -uroot -proot -e "SHOW TABLES FROM enrollment;"
+```
+
+如果你的 MySQL 密码不是 `root`，把命令里的 `-proot` 换成实际密码，例如 `-p你的密码`。
+
+下面的初始化脚本用于从零创建基础结构；如果已经导入上面的完整备份，一般不需要再执行。
+
 登录 MySQL 后执行：
 
 ```sql
