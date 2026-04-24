@@ -1,0 +1,57 @@
+.message-container {
+  width: 100%;
+}
+
+.message-list {
+  &-item {
+    padding: 0;
+    margin-bottom: 16px;
+  }
+}
+
+.message-item {
+  display: flex;
+  width: 100%;
+  
+  &-avatar {
+    margin-right: 16px;
+    padding-top: 8px;
+  }
+  
+  &-content {
+    flex: 1;
+    cursor: pointer;
+  }
+  
+  &-unread {
+    // 未读消息样式
+  }
+}
+
+.message-time {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  
+  .anticon {
+    margin-right: 4px;
+  }
+}
+
+.message-content {
+  margin: 0 !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+.message-empty {
+  padding: 40px 0;
+  background-color: white;
+  border-radius: 8px;
+}
+
+.message-pagination {
+  margin-top: 24px;
+  text-align: center;
+  padding: 12px 0;
+} 

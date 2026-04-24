@@ -1,0 +1,174 @@
+/* MotionComponents 样式文件 */
+
+/* 触觉按钮相关样式 */
+.tactile-button-container {
+  display: inline-block;
+  transform-origin: center;
+}
+
+.tactile-button {
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  &:active::after {
+    opacity: 1;
+  }
+}
+
+.tactile-button-light:active {
+  transform: scale(var(--tactile-button-light-scale, 0.98));
+}
+
+.tactile-button-medium:active {
+  transform: scale(var(--tactile-button-medium-scale, 0.95));
+}
+
+.tactile-button-strong:active {
+  transform: scale(var(--tactile-button-strong-scale, 0.92));
+}
+
+/* 动态卡片样式 */
+.motion-card-container {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.motion-card {
+  position: relative;
+  height: 100%;
+  transition: all 0.3s ease;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+/* 动态按钮样式 */
+.motion-button-container {
+  display: inline-block;
+}
+
+.motion-button {
+  position: relative;
+  overflow: hidden;
+}
+
+/* 动态图片样式 */
+.motion-image-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  
+  &.motion-image-zoom {
+    cursor: zoom-in;
+  }
+  
+  &.motion-image-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  &.motion-image-glow {
+    transition: box-shadow 0.3s ease;
+  }
+}
+
+.motion-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.motion-image-zoom:hover img {
+  transform: scale(1.05);
+}
+
+.motion-image-lift:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.motion-image-glow:hover {
+  box-shadow: 0 0 20px rgba(0, 150, 255, 0.5);
+}
+
+/* 转场页面容器样式 */
+.transition-page-container {
+  min-height: 100%;
+  width: 100%;
+}
+
+/* 淡入文本样式 */
+.fade-in-text {
+  will-change: opacity, transform;
+}
+
+/* 动态标签页样式 */
+.motion-tabs {
+  .ant-tabs-ink-bar {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  .ant-tabs-tab {
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+    }
+    
+    &.ant-tabs-tab-active {
+      transform: translateY(-2px);
+    }
+  }
+}
+
+/* CSS变量使用效果示例 */
+.motion-fast {
+  transition-duration: var(--motion-duration-fast, 0.2s);
+}
+
+.motion-medium {
+  transition-duration: var(--motion-duration-medium, 0.4s);
+}
+
+.motion-slow {
+  transition-duration: var(--motion-duration-slow, 0.6s);
+}
+
+.motion-ease-in-out {
+  transition-timing-function: var(--motion-ease-in-out, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.motion-ease-out {
+  transition-timing-function: var(--motion-ease-out, cubic-bezier(0, 0, 0.2, 1));
+}
+
+.motion-ease-in {
+  transition-timing-function: var(--motion-ease-in, cubic-bezier(0.4, 0, 1, 1));
+} 

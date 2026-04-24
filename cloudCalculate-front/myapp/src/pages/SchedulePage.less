@@ -1,0 +1,310 @@
+// 课程表页面样式
+
+// 视图选择器
+.view-type-select {
+  width: 120px;
+}
+
+// 整体容器样式
+.schedule-card {
+  margin-bottom: 24px;
+  transition: all 0.3s;
+  
+  .ant-card-body {
+    padding: 12px 24px;
+    
+    @media (max-width: 768px) {
+      padding: 12px;
+    }
+  }
+}
+
+// 负责拉取状态
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  
+  .loading-text {
+    margin-top: 16px;
+    color: rgba(0, 0, 0, 0.45);
+  }
+}
+
+// 空课程表状态
+.empty-schedule {
+  padding: 60px 0;
+  text-align: center;
+  
+  .ant-btn {
+    margin-top: 16px;
+  }
+}
+
+// 周视图样式
+.schedule-container {
+  position: relative;
+  overflow-x: auto;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  
+  // 表头
+  .schedule-header {
+    display: flex;
+    border-bottom: 1px solid #f0f0f0;
+    background: rgba(0, 0, 0, 0.02);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    
+    .time-header {
+      width: 80px;
+      padding: 12px 8px;
+      text-align: center;
+      font-weight: 500;
+      border-right: 1px solid #f0f0f0;
+    }
+    
+    .day-header {
+      flex: 1;
+      padding: 12px 8px;
+      text-align: center;
+      font-weight: 500;
+      min-width: 100px;
+      border-right: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+      
+      &.today {
+        background-color: rgba(24, 144, 255, 0.1);
+        font-weight: 600;
+        
+        .ant-badge-status-dot {
+          margin-right: 4px;
+        }
+      }
+      
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+  
+  // 课程表内容
+  .schedule-content {
+    display: flex;
+    position: relative;
+    
+    // 时间列
+    .time-column {
+      width: 80px;
+      flex-shrink: 0;
+      border-right: 1px solid #f0f0f0;
+      
+      .time-slot {
+        height: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
+        background-color: rgba(0, 0, 0, 0.01);
+        
+        .time-label {
+          font-size: 12px;
+          color: rgba(0, 0, 0, 0.65);
+        }
+      }
+    }
+    
+    // 每天的列
+    .day-column {
+      flex: 1;
+      min-width: 100px;
+      border-right: 1px solid #f0f0f0;
+      
+      &.today {
+        background-color: rgba(24, 144, 255, 0.04);
+      }
+      
+      &:last-child {
+        border-right: none;
+      }
+      
+      // 每个时间段的单元格
+      .time-cell {
+        height: 100px;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+        
+        // 课程项
+        .course-item {
+          position: absolute;
+          left: 5%;
+          top: 5px;
+          width: 90%;
+          z-index: 5;
+          border-radius: 6px;
+          background: linear-gradient(135deg, #1890ff 0%, #1890ff99 100%);
+          color: white;
+          padding: 8px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          transition: all 0.3s;
+          cursor: pointer;
+          
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          }
+          
+          .course-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            
+            .course-name {
+              font-weight: 500;
+              font-size: 12px;
+              text-align: center;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              width: 100%;
+            }
+            
+            .course-location {
+              font-size: 11px;
+              opacity: 0.9;
+              margin-top: 4px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// 课程提示框样式
+.schedule-tooltip {
+  max-width: 300px;
+  
+  .course-tooltip {
+    .tooltip-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #1890ff;
+    }
+    
+    .tooltip-detail {
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      
+      .tooltip-icon {
+        margin-right: 6px;
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// 列表视图样式
+.schedule-tabs {
+  margin-top: 16px;
+  
+  .ant-tabs-nav {
+    margin-bottom: 16px;
+    
+    &::before {
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .ant-tabs-tab {
+      transition: all 0.3s ease;
+      
+      &:hover {
+        color: #1890ff;
+      }
+      
+      &.ant-tabs-tab-active {
+        font-weight: 500;
+      }
+      
+      .ant-badge-status-dot {
+        transition: all 0.3s ease;
+      }
+    }
+  }
+  
+  .course-cards-row {
+    margin: 0 -8px;
+  }
+  
+  .schedule-course-card {
+    height: 100%;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+    overflow: hidden;
+  }
+}
+
+// 响应式样式
+@media (max-width: 768px) {
+  .schedule-container {
+    .schedule-header {
+      .time-header {
+        width: 60px;
+      }
+      
+      .day-header {
+        min-width: 80px;
+      }
+    }
+    
+    .schedule-content {
+      .time-column {
+        width: 60px;
+      }
+      
+      .day-column {
+        min-width: 80px;
+      }
+    }
+  }
+}
+
+// 全局动画
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+// 闪烁动画（用于今天的标记）
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(24, 144, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(24, 144, 255, 0);
+  }
+}
+
+.ant-badge-status-processing {
+  animation: pulse 2s infinite;
+} 

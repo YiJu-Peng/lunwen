@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hardlin.selectcourse.mapper.EnrollmentLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.hardlin.selectcourse.entity.EnrollmentLog">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="requestid" column="requestId" jdbcType="BIGINT"/>
+            <result property="studentid" column="studentId" jdbcType="BIGINT"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="createtime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updatetime" column="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,requestId,studentId,
+        status,createTime,updateTime
+    </sql>
+</mapper>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hardlin.springbootinit.mapper.CurriculumMapper">
+
+    <resultMap id="BaseResultMap" type="com.hardlin.springbootinit.model.entity.Curriculum">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="subjectid" column="subjectId" jdbcType="INTEGER"/>
+            <result property="teacherid" column="teacherId" jdbcType="INTEGER"/>
+            <result property="teachingtime" column="teachingTime" jdbcType="VARCHAR"/>
+            <result property="location" column="location" jdbcType="VARCHAR"/>
+            <result property="remarks" column=" remarks" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,subjectId,teacherId,
+        teachingTime,location, remarks
+    </sql>
+</mapper>

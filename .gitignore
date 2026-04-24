@@ -1,0 +1,53 @@
+# 办公文档与大文件
+14-软件工程-石啸林.pptx
+*.pptx
+*.ppt
+
+# 临时文件
+*~
+.~lock.*
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+
+# Node / Umi build artifacts
+node_modules/
+dist/
+build/
+.umi/
+
+# Java / Maven / Gradle build artifacts
+target/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local tooling / temp files
+.codex
+.codex/
+6020222035-彭益举/tmp_refresh_test.docx
+
+# Project backups
+*_backup_*/
+
+# External report exports
+PaperPass-*/
+
+# Generated screenshots and exported images
+screenshot_*.png
+图4-*.png

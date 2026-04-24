@@ -1,0 +1,70 @@
+.common-card {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 16px;
+  overflow: hidden;
+  
+  // 卡片标题区样式
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  &-title {
+    margin: 0 !important;
+    color: rgba(0, 0, 0, 0.85);
+    font-size: 16px !important;
+    font-weight: 600 !important;
+  }
+  
+  &-subtitle {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
+  }
+  
+  &-extra {
+    display: flex;
+    align-items: center;
+  }
+  
+  // 高亮卡片样式
+  &-highlight {
+    border-color: #1677ff;
+    box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+  }
+  
+  // 可点击卡片的悬停效果
+  &-clickable {
+    cursor: pointer;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+  }
+  
+  // 卡片内容区域
+  &-content {
+    position: relative;
+    min-height: 20px;
+  }
+  
+  // 响应式调整
+  @media (max-width: 576px) {
+    &-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    &-extra {
+      margin-top: 12px;
+      align-self: flex-end;
+    }
+  }
+} 

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auto Login</title>
+  </head>
+  <body>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const tokenName = params.get('tokenName') || 'Authorization';
+      const tokenValue = params.get('tokenValue') || '';
+      const redirect = params.get('redirect') || '/welcome';
+
+      if (tokenValue) {
+        localStorage.setItem('tokenName', tokenName);
+        localStorage.setItem('tokenValue', tokenValue);
+      }
+
+      window.location.replace(redirect);
+    </script>
+  </body>
+</html>

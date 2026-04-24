@@ -1,0 +1,168 @@
+@keyframes toastParticleEffect {
+  0% {
+    opacity: 0.8;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.5);
+  }
+}
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 100%;
+}
+
+.material-toast {
+  position: relative;
+  min-width: 280px;
+  max-width: 400px;
+  padding: 16px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  pointer-events: auto;
+  color: white;
+  
+  .toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .toast-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .toast-message {
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 500;
+    user-select: none;
+  }
+  
+  .toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background-color: rgba(255, 255, 255, 0.5);
+  }
+  
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+  
+  // 粒子特效类
+  &.toast-particles-success, 
+  &.toast-particles-error, 
+  &.toast-particles-warning, 
+  &.toast-particles-info {
+    &:before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+  }
+  
+  // 成功粒子特效
+  &.toast-particles-success:before {
+    background: radial-gradient(circle, rgba(76, 175, 80, 0.3) 10%, transparent 70%);
+    animation: toastParticleEffect 2s ease-out infinite;
+  }
+  
+  // 错误粒子特效
+  &.toast-particles-error:before {
+    background: radial-gradient(circle, rgba(244, 67, 54, 0.3) 10%, transparent 70%);
+    animation: toastParticleEffect 1.5s ease-out infinite;
+  }
+  
+  // 警告粒子特效
+  &.toast-particles-warning:before {
+    background: radial-gradient(circle, rgba(255, 193, 7, 0.3) 10%, transparent 70%);
+    animation: toastParticleEffect 2.2s ease-out infinite;
+  }
+  
+  // 信息粒子特效
+  &.toast-particles-info:before {
+    background: radial-gradient(circle, rgba(33, 150, 243, 0.3) 10%, transparent 70%);
+    animation: toastParticleEffect 2.8s ease-out infinite;
+  }
+  
+  // 特定类型样式
+  &.success {
+    background-color: #4CAF50;
+  }
+  
+  &.error {
+    background-color: #F44336;
+  }
+  
+  &.warning {
+    background-color: #FFC107;
+    color: rgba(0, 0, 0, 0.87);
+    
+    .toast-progress {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+  }
+  
+  &.info {
+    background-color: #2196F3;
+  }
+}
+
+// 响应式处理
+@media (max-width: 768px) {
+  .toast-container {
+    top: auto;
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+  }
+  
+  .material-toast {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+}
+
+// 无障碍支持
+@media (prefers-reduced-motion) {
+  .material-toast {
+    &.toast-particles-success:before,
+    &.toast-particles-error:before,
+    &.toast-particles-warning:before,
+    &.toast-particles-info:before {
+      animation: none;
+    }
+  }
+} 
