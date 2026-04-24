@@ -16,7 +16,7 @@ interface ResponseStructure {
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const requestConfig = {
-  baseURL: 'http://localhost:9900/api', // 本地联调时统一走网关
+  baseURL: 'http://localhost:9000/api', // 本地联调时统一走网关
   withCredentials: true,
   // 请求拦截器
   requestInterceptors: [
