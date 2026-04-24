@@ -202,7 +202,9 @@ def apply_cover_replacements():
                     break
             paragraph.runs[target_index].text = replacement
             for idx, run in enumerate(paragraph.runs):
-                if idx != target_index:
+                # Keep non-text runs intact because the cover underline is
+                # stored as a drawing object in the first run.
+                if idx != target_index and run.text:
                     run.text = ''
         else:
             paragraph.add_run(replacement)
@@ -211,7 +213,6 @@ def apply_cover_replacements():
     # in the middle run instead of collapsing the whole line into one run.
     class_para = doc.paragraphs[14]
     if len(class_para.runs) >= 4:
-        class_para.runs[0].text = ''
         class_para.runs[1].text = '班  级：         '
         class_para.runs[2].text = '2206'
         class_para.runs[3].text = ''
@@ -230,6 +231,14 @@ def set_east_asia_font(run, name):
     rFonts.set(qn('w:eastAsia'), name)
 
 
+def set_west_font(run, name):
+    rpr = run._r.get_or_add_rPr()
+    rFonts = rpr.get_or_add_rFonts()
+    rFonts.set(qn('w:ascii'), name)
+    rFonts.set(qn('w:hAnsi'), name)
+    rFonts.set(qn('w:cs'), name)
+
+
 def set_bool_prop(run, tag, enabled):
     rpr = run._r.get_or_add_rPr()
     el = rpr.find(qn(tag))
@@ -242,10 +251,12 @@ def set_bool_prop(run, tag, enabled):
 def ef(run, east='宋体', west=None, size=12, bold=False):
     """设置run的字体：中文字体(east)、西文字体(west)、字号、粗体"""
     if east:
-        run.font.name = east
         set_east_asia_font(run, east)
     if west:
         run.font.name = west
+        set_west_font(run, west)
+    elif east:
+        run.font.name = east
     run.font.size = Pt(size)
     run.font.bold = bold
     set_bool_prop(run, 'w:b', bold)
@@ -267,7 +278,12 @@ def set_style_font(style, east='宋体', west='Times New Roman', size=12, bold=F
     style.font.name = west or east
     style.font.size = Pt(size)
     style.font.bold = bold
-    style.element.rPr.rFonts.set(qn('w:eastAsia'), east)
+    rFonts = style.element.rPr.rFonts
+    rFonts.set(qn('w:eastAsia'), east)
+    if west:
+        rFonts.set(qn('w:ascii'), west)
+        rFonts.set(qn('w:hAnsi'), west)
+        rFonts.set(qn('w:cs'), west)
 
 
 def configure_styles():
@@ -348,7 +364,7 @@ def configure_styles():
     keyword_style.paragraph_format.first_line_indent = Pt(0)
 
     reference_style = get_or_add_style('Thesis Reference')
-    set_style_font(reference_style, east='宋体', west='Times New Roman', size=12, bold=False)
+    set_style_font(reference_style, east='宋体', west='Times New Roman', size=10.5, bold=False)
     reference_style.paragraph_format.space_before = Pt(2)
     reference_style.paragraph_format.space_after = Pt(2)
     reference_style.paragraph_format.line_spacing = Pt(20)
@@ -543,11 +559,11 @@ start_section(
 # ══════════════════════════════════════════════════════════════
 # 摘 要
 # ══════════════════════════════════════════════════════════════
-h1('摘  要')
+center_title('摘 要')
 
 body('随着高等教育规模持续扩大，高校选课系统在学期初选课高峰期面临严峻的高并发压力。传统单体架构难以应对大规模并发访问、课程资源动态分配以及个性化推荐等多元需求，系统稳定性、数据一致性和用户体验均存在明显不足。大量高校在选课开放后的前几分钟内即出现服务器响应超时甚至宕机的情况，严重影响学生的正常选课流程，暴露出传统系统架构在突发高并发场景下的脆弱性。')
 body('本文设计并实现了一套基于微服务架构的高校智能选课系统，技术选型上以Spring Boot 2.6.13和Spring Cloud Alibaba为核心，Nacos统一管理服务注册与配置，Spring Cloud Gateway对外提供路由入口，Sa-Token处理用户鉴权。选课并发控制方面，引入Redisson分布式锁保护库存扣减临界区，通过RabbitMQ将选课请求异步化从而平滑流量峰值，同时在选课服务内部记录requestId与处理状态，便于结果回查与异常排查。课程推荐模块根据学生专业字段为课程打分，专业对口课程给90分，通用选修课程给50分，降序取前N条作为推荐列表，并附上推荐理由文字；时间冲突检测则在原课程时间窗口基础上两端各延展15分钟，模拟课间转场所需时间，再与已选课程逐一比对。前端选用React结合Ant Design Pro构建管理界面，数据层使用MyBatis-Plus简化了大量重复的CRUD操作。')
-body('笔者使用JMeter对选课接口进行了阶梯并发压测，结果显示在1000并发用户下平均响应时间约790ms，吞吐量约1218 TPS，错误率维持在2%以内，全程未出现一次课程超卖，说明Redisson分布式锁的并发保护策略是有效的，系统整体能够支撑高校大规模选课场景的实际需求。')
+body('本文通过接口测试、界面测试和并发压力测试对系统进行了验证。测试结果表明，该系统能够较好地完成登录鉴权、课程推荐、在线选课、消息通知等核心业务流程，并在选课高峰场景下保持较稳定的运行状态，说明所采用的微服务架构、异步消息处理和并发控制方案具有一定的工程应用价值。')
 
 p_kw = doc.add_paragraph()
 p_kw.style = 'Thesis Keyword'
@@ -564,7 +580,7 @@ start_section(
 )
 
 # ── ABSTRACT ────────────────────────────────────────────────────
-h1('Abstract')
+center_title('Abstract')
 
 def ebody(text):
     """英文正文段落"""
@@ -578,7 +594,7 @@ def ebody(text):
 
 ebody('With the continuous expansion of higher education, the university course selection system faces severe high-concurrency pressure at the beginning of each semester. Traditional monolithic architectures are inadequate to handle large-scale concurrent access, dynamic course resource allocation, and personalized recommendation requirements, leading to obvious deficiencies in system stability, data consistency, and user experience.')
 ebody('This paper designs and implements an intelligent course selection system based on microservice architecture, solving three core problems: system stability and data consistency under high concurrency, personalized intelligent course recommendation, and automatic time-conflict detection and warning. The system uses Spring Boot 2.6.13 with Spring Cloud Alibaba, Nacos for service registration and configuration, Spring Cloud Gateway for unified routing and authentication, and Sa-Token for unified authentication management. Redisson distributed locks protect stock deduction, RabbitMQ handles asynchronous request processing and notifications, and enrollment logs record request status for tracing. The recommendation module scores courses based on major match, assigning 90 points to matched courses and 50 points to general electives. The conflict detection module uses a time-window algorithm with 15-minute buffer thresholds. The frontend is built with React and Ant Design Pro, and the backend data layer uses MyBatis-Plus.')
-ebody('Testing results show that under 1000 concurrent users, the system maintains an average response time of 790ms, a throughput of 1218 TPS, and an error rate below 2%, with zero overselling incidents, meeting large-scale course selection requirements.')
+ebody('The testing results indicate that the system can correctly complete core functions such as authentication, recommendation, course selection, and message notification, while maintaining stable operation under peak course-selection workloads. This demonstrates that the adopted microservice architecture, asynchronous message processing, and concurrency control strategy have practical engineering value.')
 
 p_kw2 = doc.add_paragraph()
 p_kw2.style = 'Thesis Keyword'
