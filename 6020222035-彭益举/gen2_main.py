@@ -146,6 +146,8 @@ def get_toc_level(title):
         return 3
     if re.match(r'^\d+\.\d+', title):
         return 2
+    if re.match(r'^\d+(\s|$)', title):
+        return 1
     return 1
 
 
@@ -159,6 +161,10 @@ def normalize_docx_layout(doc_path):
 def build_static_toc(doc_path, entries):
     if not entries:
         return False
+
+    front_entries = [('摘  要', 'I'), ('Abstract', 'II')]
+    existing_titles = {title for title, _ in entries}
+    entries = [item for item in front_entries if item[0] not in existing_titles] + entries
 
     doc_path = Path(doc_path).resolve()
     doc = Document(str(doc_path))
@@ -222,6 +228,7 @@ insert_fig = p1.insert_fig
 tbl_add   = p1.tbl_add
 start_section = p1.start_section
 center_title = p1.center_title
+add_mixed_text_runs = p1.add_mixed_text_runs
 OUT       = p1.OUT
 
 # ── 执行 Part2（第1-3章）────────────────────────────────────────
@@ -230,7 +237,10 @@ p2.write_ch1_3(doc, body, h1, h2, h3, insert_fig, tbl_add)
 
 # ── 执行 Part3（第4-7章 + 参考文献 + 致谢）──────────────────────
 p3 = load('/home/pengyiju/code/lunwen/lunwen/6020222035-彭益举/gen2_part3.py')
-p3.write_ch4_7(doc, body, h1, h2, h3, insert_fig, tbl_add, start_section, center_title)
+p3.write_ch4_7(
+    doc, body, h1, h2, h3, insert_fig, tbl_add,
+    start_section, center_title, add_mixed_text_runs,
+)
 
 # ── 保存 ────────────────────────────────────────────────────────
 doc.save(OUT)

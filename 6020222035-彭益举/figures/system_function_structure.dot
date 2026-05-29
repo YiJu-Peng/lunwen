@@ -1,0 +1,80 @@
+digraph G {
+  graph [
+    rankdir=TB,
+    bgcolor="white",
+    margin=0.08,
+    nodesep=0.45,
+    ranksep=0.55
+  ];
+  node [
+    shape=box,
+    style="rounded",
+    color="#111111",
+    penwidth=1.2,
+    fontname="Noto Sans CJK SC",
+    fontsize=16,
+    margin="0.16,0.08"
+  ];
+  edge [color="#111111", penwidth=1.1, arrowsize=0.7];
+
+  root [label="高校智能选课系统", fontsize=20, margin="0.22,0.12"];
+
+  student [label="学生端"];
+  teacher [label="教师端"];
+  admin [label="管理员端"];
+  support [label="公共支撑"];
+
+  root -> student;
+  root -> teacher;
+  root -> admin;
+  root -> support;
+
+  s1 [label="课程查询"];
+  s2 [label="智能推荐"];
+  s3 [label="在线选课"];
+  s4 [label="冲突检测"];
+  s5 [label="我的课程表"];
+  s6 [label="消息中心"];
+
+  t1 [label="课程发布"];
+  t2 [label="课程维护"];
+  t3 [label="查看选课名单"];
+
+  a1 [label="学生管理"];
+  a2 [label="教师管理"];
+  a3 [label="课程审核"];
+  a4 [label="名额调整"];
+
+  p1 [label="统一鉴权"];
+  p2 [label="网关路由"];
+  p3 [label="负载均衡"];
+  p4 [label="异步消息"];
+  p5 [label="日志记录"];
+
+  student -> s1;
+  student -> s2;
+  student -> s3;
+  student -> s4;
+  student -> s5;
+  student -> s6;
+
+  teacher -> t1;
+  teacher -> t2;
+  teacher -> t3;
+
+  admin -> a1;
+  admin -> a2;
+  admin -> a3;
+  admin -> a4;
+
+  support -> p1;
+  support -> p2;
+  support -> p3;
+  support -> p4;
+  support -> p5;
+
+  {rank=same; s1; s2; s3; s4; s5; s6;}
+  {rank=same; t1; t2; t3;}
+  {rank=same; a1; a2; a3; a4;}
+  {rank=same; p1; p2; p3; p4; p5;}
+}

@@ -4,6 +4,7 @@
 格式依据：附件3：江西农业大学本科毕业论文模板.doc
 """
 from pathlib import Path
+import re
 
 from docx import Document
 from docx.shared import Pt, Cm
@@ -12,11 +13,19 @@ from docx.enum.section import WD_SECTION
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+from PIL import Image
 
 BASE_DIR = Path(__file__).resolve().parent
 FIGURES = '/home/pengyiju/code/lunwen/lunwen/6020222035-彭益举/figures/'
 OUT = '/home/pengyiju/code/lunwen/lunwen/6020222035-彭益举/2425_41_10475_080902_6020222035_LW.docx'
 FRONT_MATTER_TEMPLATE = next(BASE_DIR.rglob('2425_41_10475_080902_602022203.docx'))
+MAX_FIG_WIDTH = 14.0
+MAX_FIG_HEIGHT = 12.5
+_H1_INDEX = 0
+CITE_PATTERN = re.compile(r'(\[[0-9]+(?:\]\[[0-9]+)*\])')
+MIXED_SEGMENT_PATTERN = re.compile(
+    r'[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+|[^\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+'
+)
 
 doc = Document(str(FRONT_MATTER_TEMPLATE))
 doc.core_properties.author = '彭益举'
@@ -28,7 +37,7 @@ BODY_HEADER = '江西农业大学本科毕业论文（设计、创作）'
 
 COVER_REPLACEMENTS = {
     '学  院：          计算机与信息工程学院': '学  院：          软件学院',
-    '班  级：         软件工程2022-1班': '班  级：         2206',
+    '班  级：         软件工程2022-1班': '班  级：         软件工程2206班',
 }
 
 # ── 页面设置：A4，与范本一致 ────────────────────────────────────
@@ -214,7 +223,7 @@ def apply_cover_replacements():
     class_para = doc.paragraphs[14]
     if len(class_para.runs) >= 4:
         class_para.runs[1].text = '班  级：         '
-        class_para.runs[2].text = '2206'
+        class_para.runs[2].text = '软件工程2206班'
         class_para.runs[3].text = ''
 
 
@@ -378,6 +387,43 @@ def center_title(text):
     return p
 
 
+def add_mixed_text_runs(paragraph, text, east='宋体', west='Times New Roman',
+                        size=12, bold=False, superscript_citations=True):
+    """中英文混排：中文宋体/黑体，数字与英文 Times New Roman。"""
+    for part in CITE_PATTERN.split(text):
+        if not part:
+            continue
+        if CITE_PATTERN.fullmatch(part):
+            run = paragraph.add_run(part)
+            ef(run, east=east, west=west, size=size, bold=bold)
+            if superscript_citations:
+                run.font.superscript = True
+            continue
+        for chunk in MIXED_SEGMENT_PATTERN.findall(part):
+            if not chunk:
+                continue
+            run = paragraph.add_run(chunk)
+            ef(run, east=east, west=west, size=size, bold=bold)
+
+
+def add_text_with_citation_superscript(paragraph, text, font_func):
+    """写入正文并将参考文献编号标为上标。"""
+    add_mixed_text_runs(
+        paragraph,
+        text,
+        east='宋体',
+        west='Times New Roman',
+        size=12,
+        bold=False,
+        superscript_citations=True,
+    )
+
+
+def normalize_caption_number(text):
+    """将图表编号从“图 3.1”统一为“图 3-1”。"""
+    return re.sub(r'([图表])\s*(\d+)\.(\d+)', r'\1 \2-\3', text)
+
+
 def add_auto_toc():
     p = doc.add_paragraph(style='Thesis TOC')
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -406,18 +452,23 @@ def add_auto_toc():
 
 def body(text):
     """正文段落：小四(12pt)宋体，首行缩进2字符(24pt)，固定行距20pt"""
+    text = normalize_caption_number(text)
     p = doc.add_paragraph(style='Thesis Body')
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     pf = p.paragraph_format
     pf.space_before = Pt(0); pf.space_after = Pt(0)
     pf.line_spacing = Pt(20)
     pf.first_line_indent = Pt(24)   # 2×12pt = 24pt
-    r = p.add_run(text)
-    ef(r, east='宋体', west='Times New Roman', size=12)
+    add_mixed_text_runs(p, text, east='宋体', west='Times New Roman', size=12)
     return p
 
 def h1(text):
-    """一级标题（章）：四号(14pt)黑体，居左，不加粗"""
+    """一级标题（章）：四号(14pt)黑体，另起一页（首章除外）"""
+    global _H1_INDEX
+    _H1_INDEX += 1
+    if _H1_INDEX > 1:
+        breaker = doc.add_paragraph()
+        breaker.add_run().add_break(WD_BREAK.PAGE)
     p = doc.add_paragraph(style='Thesis Heading 1')
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     pf = p.paragraph_format
@@ -425,8 +476,10 @@ def h1(text):
     pf.line_spacing = Pt(20)
     pf.first_line_indent = Pt(0)
     pf.left_indent = Pt(0)
-    r = p.add_run(text)
-    ef(r, east='黑体', size=14, bold=False)
+    add_mixed_text_runs(
+        p, text, east='黑体', west='Times New Roman', size=14,
+        bold=False, superscript_citations=False,
+    )
     return p
 
 def h2(text):
@@ -438,8 +491,10 @@ def h2(text):
     pf.line_spacing = Pt(20)
     pf.first_line_indent = Pt(0)
     pf.left_indent = Pt(0)
-    r = p.add_run(text)
-    ef(r, east='黑体', size=12, bold=False)
+    add_mixed_text_runs(
+        p, text, east='黑体', west='Times New Roman', size=12,
+        bold=False, superscript_citations=False,
+    )
     return p
 
 def h3(text):
@@ -451,19 +506,44 @@ def h3(text):
     pf.line_spacing = Pt(20)
     pf.first_line_indent = Pt(0)
     pf.left_indent = Pt(0)
-    r = p.add_run(text)
-    ef(r, east='黑体', size=12, bold=False)
+    add_mixed_text_runs(
+        p, text, east='黑体', west='Times New Roman', size=12,
+        bold=False, superscript_citations=False,
+    )
     return p
 
-def insert_fig(fname, caption, w=13.0):
+def fit_figure_size(path, width_cm, max_height_cm=MAX_FIG_HEIGHT):
+    """按页面可用高度等比缩放图片，避免单图占满整页。"""
+    with Image.open(path) as im:
+        iw, ih = im.size
+    if iw <= 0 or ih <= 0:
+        return min(width_cm, MAX_FIG_WIDTH), None
+
+    width_cm = min(width_cm, MAX_FIG_WIDTH)
+    height_cm = width_cm * ih / iw
+    if height_cm > max_height_cm:
+        height_cm = max_height_cm
+        width_cm = height_cm * iw / ih
+    return width_cm, height_cm
+
+
+def insert_fig(fname, caption, w=13.0, max_h=MAX_FIG_HEIGHT):
     """插入图片并添加图注（宋体小四居中）"""
+    caption = normalize_caption_number(caption)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_before = Pt(3)
     p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.keep_with_next = True
+    p.paragraph_format.keep_together = True
     run = p.add_run()
     try:
-        run.add_picture(FIGURES + fname, width=Cm(w))
+        path = FIGURES + fname
+        width_cm, height_cm = fit_figure_size(path, w, max_h)
+        if height_cm is None:
+            run.add_picture(path, width=Cm(width_cm))
+        else:
+            run.add_picture(path, width=Cm(width_cm), height=Cm(height_cm))
     except Exception:
         ef(run, east='宋体', size=10)
         run.text = f'[图片：{fname}]'
@@ -472,8 +552,11 @@ def insert_fig(fname, caption, w=13.0):
     pc.paragraph_format.space_before = Pt(3)
     pc.paragraph_format.space_after = Pt(6)
     pc.paragraph_format.line_spacing = Pt(20)
-    rc = pc.add_run(caption)
-    ef(rc, east='宋体', west='Times New Roman', size=10.5)
+    pc.paragraph_format.keep_together = True
+    add_mixed_text_runs(
+        pc, caption, east='宋体', west='Times New Roman', size=10.5,
+        superscript_citations=False,
+    )
     return p
 
 def set_cell_border(cell, **kwargs):
@@ -510,15 +593,30 @@ def apply_three_line_table(table):
             )
 
 
+def set_cell_mixed_text(cell, text, size=10, bold=False):
+    p = cell.paragraphs[0]
+    p.text = ''
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    add_mixed_text_runs(
+        p, str(text), east='宋体', west='Times New Roman', size=size,
+        bold=bold, superscript_citations=False,
+    )
+
+
 def tbl_add(title, headers, rows):
     """添加表格（含表题）"""
+    title = normalize_caption_number(title)
     pt = doc.add_paragraph(style='Thesis Caption')
     pt.alignment = WD_ALIGN_PARAGRAPH.CENTER
     pt.paragraph_format.space_before = Pt(6)
     pt.paragraph_format.space_after = Pt(3)
     pt.paragraph_format.line_spacing = Pt(20)
-    rt = pt.add_run(title)
-    ef(rt, east='宋体', west='Times New Roman', size=10.5)
+    pt.paragraph_format.keep_with_next = True
+    pt.paragraph_format.keep_together = True
+    add_mixed_text_runs(
+        pt, title, east='宋体', west='Times New Roman', size=10.5,
+        superscript_citations=False,
+    )
 
     # python-docx 的 doc.add_table() 只会按文档尾部插入。
     # 这里先放一个占位段落，再把表移动到表题后面，避免表格串到目录前。
@@ -527,16 +625,10 @@ def tbl_add(title, headers, rows):
 
     t = doc.add_table(rows=1+len(rows), cols=len(headers))
     for i, h in enumerate(headers):
-        c = t.rows[0].cells[i]; c.text = h
-        c.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        for rn in c.paragraphs[0].runs:
-            ef(rn, east='宋体', size=10, bold=True)
+        set_cell_mixed_text(t.rows[0].cells[i], h, size=10, bold=True)
     for ri, row in enumerate(rows):
         for ci, v in enumerate(row):
-            c = t.rows[ri+1].cells[ci]; c.text = str(v)
-            c.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-            for rn in c.paragraphs[0].runs:
-                ef(rn, east='宋体', size=10)
+            set_cell_mixed_text(t.rows[ri+1].cells[ci], v, size=10, bold=False)
     apply_three_line_table(t)
     pt._p.addnext(t._tbl)
 
@@ -589,8 +681,11 @@ def ebody(text):
     p.paragraph_format.space_before = Pt(0); p.paragraph_format.space_after = Pt(0)
     p.paragraph_format.line_spacing = Pt(20)
     p.paragraph_format.first_line_indent = Pt(24)
-    r = p.add_run(text)
-    r.font.name = 'Times New Roman'; r.font.size = Pt(12)
+    add_text_with_citation_superscript(
+        p,
+        text,
+        lambda run: (setattr(run.font, 'name', 'Times New Roman'), setattr(run.font, 'size', Pt(12))),
+    )
 
 ebody('With the continuous expansion of higher education, the university course selection system faces severe high-concurrency pressure at the beginning of each semester. Traditional monolithic architectures are inadequate to handle large-scale concurrent access, dynamic course resource allocation, and personalized recommendation requirements, leading to obvious deficiencies in system stability, data consistency, and user experience.')
 ebody('This paper designs and implements an intelligent course selection system based on microservice architecture, solving three core problems: system stability and data consistency under high concurrency, personalized intelligent course recommendation, and automatic time-conflict detection and warning. The system uses Spring Boot 2.6.13 with Spring Cloud Alibaba, Nacos for service registration and configuration, Spring Cloud Gateway for unified routing and authentication, and Sa-Token for unified authentication management. Redisson distributed locks protect stock deduction, RabbitMQ handles asynchronous request processing and notifications, and enrollment logs record request status for tracing. The recommendation module scores courses based on major match, assigning 90 points to matched courses and 50 points to general electives. The conflict detection module uses a time-window algorithm with 15-minute buffer thresholds. The frontend is built with React and Ant Design Pro, and the backend data layer uses MyBatis-Plus.')

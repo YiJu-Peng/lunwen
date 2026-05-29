@@ -1,0 +1,38 @@
+digraph G {
+  graph [
+    rankdir=TB,
+    bgcolor="white",
+    margin=0.08,
+    nodesep=0.28,
+    ranksep=0.38
+  ];
+  node [
+    shape=box,
+    style="rounded",
+    color="#111111",
+    penwidth=1.2,
+    fontname="Noto Sans CJK SC",
+    fontsize=14,
+    margin="0.14,0.07"
+  ];
+  edge [color="#111111", penwidth=1.1, arrowsize=0.7, fontname="Noto Sans CJK SC", fontsize=11];
+
+  login [label="用户登录"];
+  gateway [label="Gateway鉴权"];
+  recommend [label="课程推荐"];
+  query [label="查询候选课程"];
+  conflict [label="冲突预检"];
+  queue [label="投递选课消息"];
+  lock [label="Redisson加锁"];
+  stock [label="库存与重复校验"];
+  write [label="写入选课记录"];
+  notify [label="通知消息中心"];
+  schedule [label="刷新课程表"];
+
+  {rank=same; login; gateway; recommend; query; conflict; queue;}
+  {rank=same; lock; stock; write; notify; schedule;}
+
+  login -> gateway -> recommend -> query -> conflict -> queue;
+  queue -> lock -> stock -> write -> notify -> schedule;
+  stock -> notify [label="失败原因", style=dashed];
+}
