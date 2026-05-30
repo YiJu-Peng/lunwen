@@ -1,0 +1,5 @@
+# Office documents are binary artifacts. Keep reviewer-facing PRs text-only by
+# storing reproducible scripts/notes instead of generated DOCX/PPTX/XLSX diffs.
+*.docx binary
+*.pptx binary
+*.xlsx binary
