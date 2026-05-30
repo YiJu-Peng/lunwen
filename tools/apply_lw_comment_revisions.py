@@ -44,7 +44,7 @@ TEACHER_DESCRIPTION = (
 
 TARGET_STYLE_IDS = ["ThesisHeading1", "ThesisHeading2", "ThesisHeading3", "ThesisCaption"]
 DIAGRAM_EXTENTS = {
-    "media/image6.png": ("5040000", "3024000"),
+    "media/image6.png": ("5040000", "2713846"),
     "media/image8.png": ("4320000", "5981538"),
 }
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -320,6 +320,14 @@ def prepare_text_assets(source_rows: list[bytearray], boxes: dict[str, tuple[int
     return assets
 
 
+def prepare_box_assets(source_rows: list[bytearray], boxes: dict[str, tuple[int, int, int, int]], scale: int) -> dict[str, tuple[int, int, list[bytearray]]]:
+    assets = {}
+    for name, box in boxes.items():
+        width, height, cropped = crop(source_rows, box)
+        assets[name] = scale_image(cropped, width, height, scale)
+    return assets
+
+
 def draw_rect(canvas: list[bytearray], x: int, y: int, width: int, height: int, thickness: int = 4) -> None:
     # White-fill first so connector lines never show through the label box.
     canvas_width = len(canvas[0]) // 4
@@ -370,50 +378,49 @@ def edge(box: tuple[int, int, int, int], side: str) -> tuple[int, int]:
 def rebuild_function_structure_png(original_png: bytes) -> bytes:
     _, _, source_rows = decode_png_rgba(original_png)
     assets = prepare_text_assets(source_rows, FUNCTION_CROPS, scale=2)
-    canvas = blank_canvas(2000, 1200)
-    boxes: dict[str, tuple[int, int, int, int]] = {}
+    canvas = blank_canvas(2600, 1400)
 
     positions = {
-        "root": (350, 600),
-        "student": (660, 180),
-        "teacher": (660, 430),
-        "admin": (660, 700),
-        "support": (660, 1040),
-        "course_query": (900, 105),
-        "recommend": (1220, 105),
-        "select_course": (1540, 105),
-        "conflict": (900, 255),
-        "schedule": (1220, 255),
-        "message": (1540, 255),
-        "publish": (920, 380),
-        "maintain": (1240, 380),
-        "roster": (1580, 380),
-        "student_mgmt": (900, 625),
-        "teacher_mgmt": (1220, 625),
-        "course_audit": (1540, 625),
-        "quota": (1220, 775),
-        "auth": (850, 890),
-        "gateway": (1130, 890),
-        "load": (1410, 890),
-        "async": (990, 1100),
-        "log": (1270, 1100),
+        "root": (330, 700),
+        "student": (820, 220),
+        "teacher": (820, 500),
+        "admin": (820, 780),
+        "support": (820, 1100),
+        "course_query": (1200, 105),
+        "recommend": (1600, 105),
+        "select_course": (2000, 105),
+        "conflict": (1200, 265),
+        "schedule": (1600, 265),
+        "message": (2000, 265),
+        "publish": (1200, 445),
+        "maintain": (1600, 445),
+        "roster": (2000, 445),
+        "student_mgmt": (1200, 700),
+        "teacher_mgmt": (1600, 700),
+        "course_audit": (2000, 700),
+        "quota": (1600, 860),
+        "auth": (1120, 1060),
+        "gateway": (1460, 1060),
+        "load": (1800, 1060),
+        "async": (1320, 1230),
+        "log": (1660, 1230),
     }
 
     for role in ["student", "teacher", "admin", "support"]:
-        draw_arrow(canvas, (620, 600), (560, positions[role][1]))
+        draw_arrow(canvas, (620, 700), (690, positions[role][1]))
     for target in ["course_query", "recommend", "select_course", "conflict", "schedule", "message"]:
-        draw_arrow(canvas, (760, 180), (780, positions[target][1]))
+        draw_arrow(canvas, (940, 220), (1040, positions[target][1]))
     for target in ["publish", "maintain", "roster"]:
-        draw_arrow(canvas, (760, 430), (780, positions[target][1]))
+        draw_arrow(canvas, (940, 500), (1040, positions[target][1]))
     for target in ["student_mgmt", "teacher_mgmt", "course_audit", "quota"]:
-        draw_arrow(canvas, (780, 700), (790, positions[target][1]))
+        draw_arrow(canvas, (950, 780), (1040, positions[target][1]))
     for target in ["auth", "gateway", "load", "async", "log"]:
-        draw_arrow(canvas, (780, 1040), (780, positions[target][1]))
+        draw_arrow(canvas, (950, 1100), (990, positions[target][1]))
 
     for name, center in positions.items():
-        boxes[name] = draw_label(canvas, assets[name], center, padding_x=44 if name == "root" else 34, padding_y=26)
-    return encode_png_rgba(2000, 1200, canvas)
-
+        boxes_padding_x = 54 if name == "root" else 42
+        draw_label(canvas, assets[name], center, padding_x=boxes_padding_x, padding_y=30)
+    return encode_png_rgba(2600, 1400, canvas)
 
 def rebuild_detailed_flow_png(original_png: bytes) -> bytes:
     _, _, source_rows = decode_png_rgba(original_png)
@@ -433,12 +440,17 @@ def rebuild_detailed_flow_png(original_png: bytes) -> bytes:
         "refresh",
     ]
     positions = {name: (650, 110 + index * 150) for index, name in enumerate(sequence)}
-    boxes = {name: draw_label(canvas, assets[name], center, padding_x=40, padding_y=28) for name, center in positions.items()}
+    boxes: dict[str, tuple[int, int, int, int]] = {}
+    # Estimate boxes first so arrows can be routed to edges, then repaint labels
+    # on top to keep every node clean and readable.
+    for name, center in positions.items():
+        text_width, text_height, _ = assets[name]
+        boxes[name] = (center[0] - (text_width + 88) // 2, center[1] - (text_height + 60) // 2, text_width + 88, text_height + 60)
     for previous, current in zip(sequence, sequence[1:]):
         draw_arrow(canvas, edge(boxes[previous], "bottom"), edge(boxes[current], "top"))
-
+    for name, center in positions.items():
+        draw_label(canvas, assets[name], center, padding_x=44, padding_y=30)
     return encode_png_rgba(1300, 1800, canvas)
-
 
 def read_package(docx_path: Path) -> tuple[dict[str, bytes], list[str]]:
     with zipfile.ZipFile(docx_path, "r") as docx:
@@ -566,8 +578,8 @@ def verify_output(output_path: Path) -> None:
             raise RuntimeError("Generated DOCX unexpectedly contains SVG media; use PNG media for compatibility.")
         image6_size = png_dimensions(docx.read("word/media/image6.png"))
         image8_size = png_dimensions(docx.read("word/media/image8.png"))
-        if image6_size != (2000, 1200):
-            raise RuntimeError(f"Expected rebuilt function-structure diagram to be 2000x1200, got {image6_size}.")
+        if image6_size != (2600, 1400):
+            raise RuntimeError(f"Expected rebuilt function-structure diagram to be 2600x1400, got {image6_size}.")
         if image8_size != (1300, 1800):
             raise RuntimeError(f"Expected rebuilt detailed-flow diagram to be 1300x1800, got {image8_size}.")
 
